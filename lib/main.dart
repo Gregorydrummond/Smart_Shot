@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue/flutter_blue.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,14 +25,13 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Smart Shot'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
+  MyHomePage({Key? key, required this.title}) : super(key: key);
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -43,12 +43,44 @@ class MyHomePage extends StatefulWidget {
 
   final String title;
 
+  // A Flutter Blue instance/object
+  final FlutterBlue flutterBlue = FlutterBlue.instance;
+
+  // List of bluetooth devices
+  final List<BluetoothDevice> deviceList =  [];
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  
+  @override
+  void initState() {
+    super.initState();
+
+    // We won't see devices that are already connected  when we scan, so we add already connected devices to the list
+    widget.flutterBlue.connectedDevices.asStream().listen((List<BluetoothDevice> devices) {
+      for (BluetoothDevice device in devices) {
+        _addDeviceToList(device);
+      }
+    });
+
+    // Define what to do with the scan results once we scan 
+    widget.flutterBlue.scanResults.listen((List<ScanResult> scanResults) {
+      for (ScanResult scanResult in scanResults) {
+        _addDeviceToList(scanResult.device);
+      }
+     });
+
+    // Start scan
+    widget.flutterBlue.startScan(
+      timeout: const Duration(seconds: 5),
+    );
+  }
+
   int _counter = 0;
+  String led = "Off";
 
   void _incrementCounter() {
     setState(() {
@@ -59,6 +91,61 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  // Add device to list if it's not already in there
+  void _addDeviceToList(final BluetoothDevice device) {
+    if(!widget.deviceList.contains(device)) {
+      setState(() {
+        widget.deviceList.add(device);
+      });
+    }
+  }
+  
+  // Create a ListView using the device list
+  ListView _buildListViewOfDevices() {
+    List<Container> containers = [];
+
+    for (BluetoothDevice device in widget.deviceList) {
+      containers.add(
+        Container(
+          height: 50,
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    Text(device.name == '' ? '(unknown device' : device.name),
+                    Text(device.id.toString()),
+                  ]
+                ),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: TextStyle(fontSize: 20),
+                  backgroundColor: Colors.blue,
+                ),
+                onPressed: () {}, 
+                child: const Text(
+                  "Connect",
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            ]
+          ),
+        )
+      );
+    }
+
+    // Return the ListView
+    return ListView(
+      padding: const EdgeInsets.all(8),
+      children: <Widget>[
+          ...containers,      // Puts all the items of containers, which are Containers, within the children list of the list view
+      ],
+    );
   }
 
   @override
@@ -75,36 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
+      body: _buildListViewOfDevices(),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
