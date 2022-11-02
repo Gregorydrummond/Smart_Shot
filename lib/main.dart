@@ -1,139 +1,238 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'session.dart';
 
-Future<void> main() async {
-  // Ensure that plugin services are initialized so that `availableCameras()`
-  // can be called before `runApp()`
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Obtain a list of the available cameras on the device.
-  final cameras = await availableCameras();
-
-  // Get a specific camera from the list of available cameras.
-  final firstCamera = cameras.first;
-
+void main() {
   runApp(
     MaterialApp(
-      theme: ThemeData.dark(),
-      home: TakePictureScreen(
-        // Pass the appropriate camera to the TakePictureScreen widget.
-        camera: firstCamera,
-      ),
+      theme: ThemeData.light(),
+      // home: Sessions(),
+      routes: {
+        '/': (context) => Sessions(),
+        '/live-session': (context) => Sessions()
+      },
     ),
   );
 }
 
-// A screen that allows users to take a picture using a given camera.
-class TakePictureScreen extends StatefulWidget {
-  const TakePictureScreen({
-    super.key,
-    required this.camera,
-  });
-
-  final CameraDescription camera;
+class Sessions extends StatefulWidget {
+  const Sessions({super.key});
 
   @override
-  TakePictureScreenState createState() => TakePictureScreenState();
+  State<Sessions> createState() => _SessionsState();
 }
 
-class TakePictureScreenState extends State<TakePictureScreen> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
+class _SessionsState extends State<Sessions> {
+  List<Session> sessions = [
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 0, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 12)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 14)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 16)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 0, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 17)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 12)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 14)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 16)),
+    Session(12, 0.25, <int>[2, 0, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 17)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 12)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 14)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 16)),
+    Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
+        DateTime.utc(2022, 6, 17)),
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    // To display the current output from the Camera,
-    // create a CameraController.
-    _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
-      widget.camera,
-      // Define the resolution to use.
-      ResolutionPreset.medium,
-    );
+  int index = 0;
 
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
+  Widget selectPage() {
+    switch (index) {
+      case 0:
+        return SingleChildScrollView(
+          child: Column(
+              children:
+                  sessions.map((session) => SessionCard(session)).toList()),
+        );
+      case 1:
+        return Center(
+            heightFactor: 20,
+            child: Column(
+              children: [
+                const Text('Connect to the shot tracker device via Bluetooth'),
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LiveSession()));
+                    },
+                    child: const Text('Connect'))
+              ],
+            ));
+      case 2:
+        return Center(
+          heightFactor: 20,
+          child: const Text('Graph to display shot progress'),
+        );
+      default:
+        return SingleChildScrollView(
+          child: Column(
+              children:
+                  sessions.map((session) => SessionCard(session)).toList()),
+        );
+    }
   }
 
-  @override
-  void dispose() {
-    // Dispose of the controller when the widget is disposed.
-    _controller.dispose();
-    super.dispose();
+  void setIndex(int index) {
+    setState(() {
+      this.index = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
-      // You must wait until the controller is initialized before displaying the
-      // camera preview. Use a FutureBuilder to display a loading spinner until the
-      // controller has finished initializing.
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(_controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+      appBar: AppBar(
+        backgroundColor: Colors.amber[800],
+        title: const Text('Smart Shot'),
       ),
-      floatingActionButton: FloatingActionButton(
-        // Provide an onPressed callback.
-        onPressed: () async {
-          // Take the Picture in a try / catch block. If anything goes wrong,
-          // catch the error.
-          try {
-            // Ensure that the camera is initialized.
-            await _initializeControllerFuture;
+      body: selectPage(),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Sessions',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add),
+            label: 'Start Session',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Analyze',
+          ),
+        ],
+        currentIndex: index,
+        selectedItemColor: Colors.amber[800],
+        onTap: setIndex,
+      ),
+    );
+  }
+}
 
-            // Attempt to take a picture and get the file `image`
-            // where it was saved.
-            final image = await _controller.takePicture();
+class SessionCard extends StatelessWidget {
+  final Session session;
 
-            if (!mounted) return;
+  SessionCard(this.session);
 
-            // If the picture was taken, display it on a new screen.
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  // Pass the automatically generated path to
-                  // the DisplayPictureScreen widget.
-                  imagePath: image.path,
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => SessionDetails(session)));
+      },
+      child: Card(
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Text('Total Shots: ${session.totalShots}'),
+                    const SizedBox(
+                      width: 12,
+                    ),
+                    Text('Shot Percentage: ${session.shotPercentage * 100}%')
+                  ],
                 ),
-              ),
-            );
-          } catch (e) {
-            // If an error occurs, log the error to the console.
-            print(e);
-          }
-        },
-        child: const Icon(Icons.camera_alt),
+                const SizedBox(
+                  height: 12,
+                ),
+                Row(
+                  children: [
+                    Text(
+                        'Date: ${session.date.month}/${session.date.day}/${session.date.year}')
+                  ],
+                )
+              ],
+            ),
+          )),
+    );
+  }
+}
+
+class SessionDetails extends StatelessWidget {
+  Session session;
+  SessionDetails(this.session);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.amber[800],
+        title: const Text('Session Details'),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+              'Date: ${session.date.month}/${session.date.day}/${session.date.year}'),
+          const SizedBox(
+            height: 16,
+          ),
+          Text('Total Shots: ${session.totalShots}'),
+          const SizedBox(
+            height: 16,
+          ),
+          Text('Shot Percentage: ${session.shotPercentage}'),
+          const SizedBox(
+            height: 16,
+          ),
+          const Text(
+            'Shot History',
+            textAlign: TextAlign.center,
+          ),
+          Column(
+            children: session.shots.map((shot) {
+              if (shot == 0) {
+                return Text('Air Ball');
+              } else if (shot == 1) {
+                return Text('Miss');
+              } else {
+                return Text('Scored');
+              }
+            }).toList(),
+          )
+        ],
       ),
     );
   }
 }
 
-// A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
+class LiveSession extends StatefulWidget {
+  const LiveSession({super.key});
 
-  const DisplayPictureScreen({super.key, required this.imagePath});
+  @override
+  State<LiveSession> createState() => _LiveSessionState();
+}
 
+class _LiveSessionState extends State<LiveSession> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
+      appBar: AppBar(
+        backgroundColor: Colors.amber[800],
+        title: const Text('Live Session'),
+      ),
+      body: const Text('Camera feed and shot data'),
     );
   }
 }
