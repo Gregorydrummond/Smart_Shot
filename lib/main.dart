@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'session.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(
@@ -76,9 +80,9 @@ class _SessionsState extends State<Sessions> {
               ],
             ));
       case 2:
-        return Center(
+        return const Center(
           heightFactor: 20,
-          child: const Text('Graph to display shot progress'),
+          child: Text('Graph to display shot progress'),
         );
       default:
         return SingleChildScrollView(
@@ -225,6 +229,127 @@ class LiveSession extends StatefulWidget {
 }
 
 class _LiveSessionState extends State<LiveSession> {
+
+  // State management
+  bool _foundDeviceWaitingToConnect = false;
+  bool _scanStarted = false;
+  bool _connected = false;
+
+  // Data
+  static int value = 2;
+
+  // Bluetooth
+  late DiscoveredDevice smartShotDevice;
+  final flutterReactiveBLE = FlutterReactiveBle();
+  late StreamSubscription<DiscoveredDevice> _scanStream;
+  late List<DiscoveredService> _discoveredServices;
+  late QualifiedCharacteristic randomQualifiedCharacteristic;
+  late DiscoveredCharacteristic randomDiscoveredCharacteristic;
+
+  // Service and characteristics that we care about
+  final Uuid serviceUuid = Uuid.parse('0000180a-0000-1000-8000-00805f9b34fb');
+  final Uuid randomCharacteristicUuid = Uuid.parse('00002a58-0000-1000-8000-00805f9b34fb');
+  final Uuid switchCharacteristicUuid = Uuid.parse('00002a57-0000-1000-8000-00805f9b34fb');
+
+  @override
+  void initState() {
+    super.initState();
+
+    _startScan();
+  }
+
+  // Start a scan for peripheral devices
+  void _startScan() async {
+    // Platform permissions handling stuff
+    bool permGranted = false;
+    setState(() {
+      _scanStarted = true;
+    });
+    if (Platform.isAndroid) {
+      if (await Permission.location.request().isGranted) {
+        // Either the permission was already granted before or the user just granted it.
+        permGranted = true;
+      }
+    } else if (Platform.isIOS) {
+      permGranted = true;
+    }
+
+    if (permGranted) {
+      _scanStream =
+          flutterReactiveBLE.scanForDevices(withServices: []).listen((device) {
+            if (device.name == 'SmartShot') {
+              setState(() {
+                smartShotDevice = device;
+                _foundDeviceWaitingToConnect = true;
+                _connectToDevice();
+                //print('Found device for real: ${device.name}');
+              });
+            }
+          });
+    }
+  }
+
+  void _connectToDevice() {
+    // Stop scanning
+    _scanStream.cancel();
+
+    // Connect to Smart Shot device. Method returns a stream to listen to connection state
+    Stream<ConnectionStateUpdate> _currentConnectionStatus = flutterReactiveBLE.connectToDevice(
+      id: smartShotDevice.id,
+      connectionTimeout: const Duration(seconds: 5),
+    );
+
+    _currentConnectionStatus.listen((event) async {
+      switch (event.connectionState) {
+        case DeviceConnectionState.connected: {     // Connected to device
+          _discoveredServices = await flutterReactiveBLE.discoverServices(smartShotDevice.id);
+          for (var service in _discoveredServices) {
+            for (var characteristic in service.characteristics) {
+              if (characteristic.characteristicId == randomCharacteristicUuid) {
+                randomDiscoveredCharacteristic = characteristic;
+                randomQualifiedCharacteristic = QualifiedCharacteristic(
+                  characteristicId: randomCharacteristicUuid,
+                  serviceId: serviceUuid,
+                  deviceId: smartShotDevice.id,
+                );
+                break;
+              }
+            }
+          }
+          setState(() {
+            _foundDeviceWaitingToConnect = false;
+            _connected = true;
+            _subToCharacteristic();
+          });
+          break;
+        }
+        case DeviceConnectionState.connecting: {
+          print('Connecting...');
+          break;
+        }
+        case DeviceConnectionState.disconnected: {
+          print('Disconnected');
+          break;
+        }
+        case DeviceConnectionState.disconnecting: {
+          print('Disconnecting...');
+        }
+      }
+    });
+  }
+
+  void _subToCharacteristic() {
+    flutterReactiveBLE.subscribeToCharacteristic(randomQualifiedCharacteristic).listen((data) {
+      //print(data);
+      setState(() {
+        value = data.isNotEmpty ? data.first : 2;
+        //print(value);
+      });
+    }, onError: (dynamic error) {
+      print('Error: $error');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,7 +357,43 @@ class _LiveSessionState extends State<LiveSession> {
         backgroundColor: Colors.amber[800],
         title: const Text('Live Session'),
       ),
-      body: const Text('Camera feed and shot data'),
+      body: Center(
+        child:
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              width: 200,
+              height: 200,
+              color: Colors.orange,
+              alignment: Alignment.center,
+              child:
+              Text(
+                value.toString(),
+                style: const TextStyle(
+                  fontSize: 50,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              width: 200,
+              height: 200,
+              color: Colors.green,
+              alignment: Alignment.center,
+              child: const Text(
+                'Turn On',
+                style: TextStyle(
+                  fontSize: 50,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
