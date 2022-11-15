@@ -248,8 +248,11 @@ class _LiveSessionState extends State<LiveSession> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Platform Channel'),
+      ),
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
