@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'session.dart';
 
 void main() {
@@ -76,9 +78,9 @@ class _SessionsState extends State<Sessions> {
               ],
             ));
       case 2:
-        return Center(
+        return const Center(
           heightFactor: 20,
-          child: const Text('Graph to display shot progress'),
+          child: Text('Graph to display shot progress'),
         );
       default:
         return SingleChildScrollView(
@@ -225,14 +227,40 @@ class LiveSession extends StatefulWidget {
 }
 
 class _LiveSessionState extends State<LiveSession> {
+  static const platform = MethodChannel('samples.flutter.dev/battery');
+
+  // Get battery level.
+  String _batteryLevel = 'Unknown battery level.';
+
+  Future<void> _getBatteryLevel() async {
+    String batteryLevel;
+    try {
+      final int result = await platform.invokeMethod('getBatteryLevel');
+      batteryLevel = 'Battery level at $result % .';
+    } on PlatformException catch (e) {
+      batteryLevel = "Failed to get battery level: '${e.message}'.";
+    }
+
+    setState(() {
+      _batteryLevel = batteryLevel;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.amber[800],
-        title: const Text('Live Session'),
+    return Material(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: _getBatteryLevel,
+              child: const Text('Get Battery Level'),
+            ),
+            Text(_batteryLevel),
+          ],
+        ),
       ),
-      body: const Text('Camera feed and shot data'),
     );
   }
 }
