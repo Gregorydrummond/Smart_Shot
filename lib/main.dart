@@ -290,6 +290,9 @@ class _LiveSessionState extends State<LiveSession> {
         title: Text('Platform Channel'),
       ),
       body: CameraPreview(controller),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () => {}, child: const Icon(Icons.camera)),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       //Center(
       //   child: Column(
       //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
