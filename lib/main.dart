@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
@@ -237,6 +238,11 @@ class _LiveSessionState extends State<LiveSession> {
   static const platform = MethodChannel('samples.flutter.dev/battery');
 
   late CameraController controller;
+  late Future<void> _initializeControllerFuture;
+
+  bool showCameraPreview = true;
+
+  late String imagePath;
 
   String _batteryLevel = 'Unknown battery level.';
 
@@ -254,27 +260,75 @@ class _LiveSessionState extends State<LiveSession> {
     });
   }
 
+  Future<void> _takePicture() async {
+    try {
+      await _initializeControllerFuture;
+      final image = await controller.takePicture();
+
+      if (!mounted) return;
+
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DisplayPictureScreen(
+            imagePath: image.path,
+          ),
+        ),
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void _returnToPreview() {
+    setState(() {
+      showCameraPreview = true;
+    });
+  }
+
+  Widget _pickBody() {
+    if (showCameraPreview == true) {
+      return CameraPreview(controller);
+    } else {
+      return Container(); //Image.file(File(imagePath));
+    }
+  }
+
+  Widget _pickFloatingAction() {
+    if (showCameraPreview == true) {
+      return FloatingActionButton(
+        onPressed: _takePicture,
+        child: const Icon(Icons.add_a_photo),
+      );
+    } else {
+      return FloatingActionButton(
+        onPressed: _returnToPreview,
+        tooltip: 'Return To Preview',
+        child: const Icon(Icons.arrow_back_rounded),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     controller = CameraController(_cameras[0], ResolutionPreset.max);
-    controller.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {});
-    }).catchError((Object e) {
-      if (e is CameraException) {
-        switch (e.code) {
-          case 'CameraAccessDenied':
-            print('User denied camera access.');
-            break;
-          default:
-            print('Handle other errors.');
-            break;
-        }
-      }
-    });
+    _initializeControllerFuture = controller.initialize(); //.then((_) {
+    //   if (!mounted) {
+    //     return;
+    //   }
+    //   setState(() {});
+    // }).catchError((Object e) {
+    //   if (e is CameraException) {
+    //     switch (e.code) {
+    //       case 'CameraAccessDenied':
+    //         print('User denied camera access.');
+    //         break;
+    //       default:
+    //         print('Handle other errors.');
+    //         break;
+    //     }
+    //   }
+    // });
   }
 
   @override
@@ -287,24 +341,39 @@ class _LiveSessionState extends State<LiveSession> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Platform Channel'),
+        title: const Text('Platform Channel'),
       ),
-      body: CameraPreview(controller),
-      floatingActionButton: FloatingActionButton(
-          onPressed: () => {}, child: const Icon(Icons.camera)),
+      // body: _pickBody(),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // If the Future is complete, display the preview.
+            return CameraPreview(controller);
+          } else {
+            // Otherwise, display a loading indicator.
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+      floatingActionButton: _pickFloatingAction(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      //Center(
-      //   child: Column(
-      //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      //     children: [
-      //       ElevatedButton(
-      //         onPressed: _getBatteryLevel,
-      //         child: const Text('Get Battery Level'),
-      //       ),
-      //       Text(_batteryLevel),
-      //     ],
-      //   ),
-      // ),
+    );
+  }
+}
+
+class DisplayPictureScreen extends StatelessWidget {
+  final String imagePath;
+
+  const DisplayPictureScreen({super.key, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Display the Picture')),
+      // The image is stored as a file on the device. Use the `Image.file`
+      // constructor with the given path to display the image.
+      body: Image.file(File(imagePath)),
     );
   }
 }
