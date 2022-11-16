@@ -1,9 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:camera/camera.dart';
 import 'session.dart';
 
-void main() {
+late List<CameraDescription> _cameras;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  _cameras = await availableCameras();
+
   runApp(
     MaterialApp(
       theme: ThemeData.light(),
@@ -229,7 +236,8 @@ class LiveSession extends StatefulWidget {
 class _LiveSessionState extends State<LiveSession> {
   static const platform = MethodChannel('samples.flutter.dev/battery');
 
-  // Get battery level.
+  late CameraController controller;
+
   String _batteryLevel = 'Unknown battery level.';
 
   Future<void> _getBatteryLevel() async {
@@ -247,23 +255,53 @@ class _LiveSessionState extends State<LiveSession> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    controller = CameraController(_cameras[0], ResolutionPreset.max);
+    controller.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    }).catchError((Object e) {
+      if (e is CameraException) {
+        switch (e.code) {
+          case 'CameraAccessDenied':
+            print('User denied camera access.');
+            break;
+          default:
+            print('Handle other errors.');
+            break;
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Platform Channel'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-              onPressed: _getBatteryLevel,
-              child: const Text('Get Battery Level'),
-            ),
-            Text(_batteryLevel),
-          ],
-        ),
-      ),
+      body: CameraPreview(controller),
+      //Center(
+      //   child: Column(
+      //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      //     children: [
+      //       ElevatedButton(
+      //         onPressed: _getBatteryLevel,
+      //         child: const Text('Get Battery Level'),
+      //       ),
+      //       Text(_batteryLevel),
+      //     ],
+      //   ),
+      // ),
     );
   }
 }
