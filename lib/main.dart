@@ -235,10 +235,10 @@ class LiveSession extends StatefulWidget {
 }
 
 class _LiveSessionState extends State<LiveSession> {
-  static const platform = MethodChannel('samples.flutter.dev/battery');
+  static const platform = MethodChannel('smartshot/opencv');
 
   late CameraController controller;
-  late Future<void> _initializeControllerFuture;
+  // late Future<void> _initializeControllerFuture;
 
   bool showCameraPreview = true;
 
@@ -262,18 +262,22 @@ class _LiveSessionState extends State<LiveSession> {
 
   Future<void> _takePicture() async {
     try {
-      await _initializeControllerFuture;
+      // await _initializeControllerFuture;
       final image = await controller.takePicture();
 
       if (!mounted) return;
 
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => DisplayPictureScreen(
-            imagePath: image.path,
-          ),
-        ),
-      );
+      setState(() {
+        imagePath = image.path;
+        showCameraPreview = false;
+      });
+      // await Navigator.of(context).push(
+      //   MaterialPageRoute(
+      //     builder: (context) => DisplayPictureScreen(
+      //       imagePath: image.path,
+      //     ),
+      //   ),
+      // );
     } catch (e) {
       print(e);
     }
@@ -289,7 +293,7 @@ class _LiveSessionState extends State<LiveSession> {
     if (showCameraPreview == true) {
       return CameraPreview(controller);
     } else {
-      return Container(); //Image.file(File(imagePath));
+      return Image.file(File(imagePath));
     }
   }
 
@@ -312,23 +316,23 @@ class _LiveSessionState extends State<LiveSession> {
   void initState() {
     super.initState();
     controller = CameraController(_cameras[0], ResolutionPreset.max);
-    _initializeControllerFuture = controller.initialize(); //.then((_) {
-    //   if (!mounted) {
-    //     return;
-    //   }
-    //   setState(() {});
-    // }).catchError((Object e) {
-    //   if (e is CameraException) {
-    //     switch (e.code) {
-    //       case 'CameraAccessDenied':
-    //         print('User denied camera access.');
-    //         break;
-    //       default:
-    //         print('Handle other errors.');
-    //         break;
-    //     }
-    //   }
-    // });
+    controller.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    }).catchError((Object e) {
+      if (e is CameraException) {
+        switch (e.code) {
+          case 'CameraAccessDenied':
+            print('User denied camera access.');
+            break;
+          default:
+            print('Handle other errors.');
+            break;
+        }
+      }
+    });
   }
 
   @override
@@ -343,19 +347,19 @@ class _LiveSessionState extends State<LiveSession> {
       appBar: AppBar(
         title: const Text('Platform Channel'),
       ),
-      // body: _pickBody(),
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
+      body: _pickBody(),
+      // body: FutureBuilder<void>(
+      //   future: _initializeControllerFuture,
+      //   builder: (context, snapshot) {
+      //     if (snapshot.connectionState == ConnectionState.done) {
+      //       // If the Future is complete, display the preview.
+      //       return CameraPreview(controller);
+      //     } else {
+      //       // Otherwise, display a loading indicator.
+      //       return const Center(child: CircularProgressIndicator());
+      //     }
+      //   },
+      // ),
       floatingActionButton: _pickFloatingAction(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

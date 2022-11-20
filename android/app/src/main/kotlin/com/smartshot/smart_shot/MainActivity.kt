@@ -16,11 +16,11 @@ import org.opencv.android.OpenCVLoader
 
 
 class MainActivity: FlutterActivity() {
-  private val CHANNEL = "samples.flutter.dev/battery"
+  private val OPENCV_CHANNEL = "smartshot/opencv"
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
-      MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
+      MethodChannel(flutterEngine.dartExecutor.binaryMessenger, OPENCV_CHANNEL).setMethodCallHandler {
       // This method is invoked on the main thread.
       call, result ->
       if (call.method == "getBatteryLevel") {
