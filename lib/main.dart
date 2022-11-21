@@ -86,10 +86,7 @@ class _SessionsState extends State<Sessions> {
               ],
             ));
       case 2:
-        return const Center(
-          heightFactor: 20,
-          child: Text('Graph to display shot progress'),
-        );
+        return const LiveSession();
       default:
         return SingleChildScrollView(
           child: Column(
@@ -344,9 +341,9 @@ class _LiveSessionState extends State<LiveSession> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Platform Channel'),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Platform Channel'),
+      // ),
       body: _pickBody(),
       // body: FutureBuilder<void>(
       //   future: _initializeControllerFuture,
@@ -362,22 +359,6 @@ class _LiveSessionState extends State<LiveSession> {
       // ),
       floatingActionButton: _pickFloatingAction(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
-  }
-}
-
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({super.key, required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
     );
   }
 }
