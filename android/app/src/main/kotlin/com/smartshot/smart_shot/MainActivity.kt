@@ -27,7 +27,6 @@ class MainActivity: FlutterActivity() {
         val batteryLevel = getBatteryLevel()
 
         if (batteryLevel != -1) {
-
           if (OpenCVLoader.initDebug()) {
             result.success(110)
           }
