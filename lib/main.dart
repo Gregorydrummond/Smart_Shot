@@ -241,40 +241,25 @@ class _LiveSessionState extends State<LiveSession> {
 
   late String imagePath;
 
-  String _batteryLevel = 'Unknown battery level.';
-
-  Future<void> _getBatteryLevel() async {
-    String batteryLevel;
+  Future<void> _processImage({required String path}) async {
     try {
-      final int result = await platform.invokeMethod('getBatteryLevel');
-      batteryLevel = 'Battery level at $result % .';
+      await platform.invokeMethod('processImage', {"path": path});
+      setState(() {
+        imagePath = path;
+        showCameraPreview = false;
+      });
     } on PlatformException catch (e) {
-      batteryLevel = "Failed to get battery level: '${e.message}'.";
+      print(e);
+      return;
     }
-
-    setState(() {
-      _batteryLevel = batteryLevel;
-    });
   }
 
   Future<void> _takePicture() async {
     try {
       // await _initializeControllerFuture;
       final image = await controller.takePicture();
-
       if (!mounted) return;
-
-      setState(() {
-        imagePath = image.path;
-        showCameraPreview = false;
-      });
-      // await Navigator.of(context).push(
-      //   MaterialPageRoute(
-      //     builder: (context) => DisplayPictureScreen(
-      //       imagePath: image.path,
-      //     ),
-      //   ),
-      // );
+      await _processImage(path: image.path);
     } catch (e) {
       print(e);
     }

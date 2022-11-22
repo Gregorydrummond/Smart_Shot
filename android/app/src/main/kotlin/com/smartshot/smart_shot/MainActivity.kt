@@ -16,45 +16,30 @@ import org.opencv.android.OpenCVLoader
 
 
 class MainActivity: FlutterActivity() {
-  private val OPENCV_CHANNEL = "smartshot/opencv"
+  private val _channel = "smartshot/opencv"
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
-      MethodChannel(flutterEngine.dartExecutor.binaryMessenger, OPENCV_CHANNEL).setMethodCallHandler {
+      MethodChannel(flutterEngine.dartExecutor.binaryMessenger, _channel).setMethodCallHandler { call, result ->
       // This method is invoked on the main thread.
-      call, result ->
-      if (call.method == "getBatteryLevel") {
-        val batteryLevel = getBatteryLevel()
+      if (call.method == "processImage") {
+        if (OpenCVLoader.initDebug()) {
+          if (call.hasArgument("path")) {
+            val path = call.argument<String>("path");
 
-        if (batteryLevel != -1) {
-          if (OpenCVLoader.initDebug()) {
-            result.success(110)
           }
           else {
-            result.success(batteryLevel)
+            result.error("ARGUMENT ERROR", "Path not provided.", null);
           }
+          result.success(null);
         }
         else {
-          result.error("UNAVAILABLE", "Battery level not available.", null)
+          result.error("UNAVAILABLE", "Opencv not available.", null);
         }
       }
       else {
-        result.notImplemented()
+        result.notImplemented();
       }
     }
-  }
-
-  private fun getBatteryLevel(): Int {
-    val batteryLevel: Int
-    if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-      val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-      batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-    }
-    else {
-      val intent = ContextWrapper(applicationContext).registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-      batteryLevel = intent!!.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) * 100 / intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-    }
-
-    return batteryLevel
   }
 }
