@@ -38,7 +38,6 @@ class MainActivity: FlutterActivity() {
           else {
             result.error("ARGUMENT ERROR", "Path not provided.", null);
           }
-          result.success(null);
         }
         else {
           result.error("UNAVAILABLE", "Opencv not available.", null);
