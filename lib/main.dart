@@ -243,7 +243,9 @@ class _LiveSessionState extends State<LiveSession> {
 
   Future<void> _processImage({required String path}) async {
     try {
-      await platform.invokeMethod('processImage', {"path": path});
+      String returnPath =
+          await platform.invokeMethod('processImage', {"path": path});
+      print(returnPath);
       setState(() {
         imagePath = path;
         showCameraPreview = false;
@@ -256,7 +258,6 @@ class _LiveSessionState extends State<LiveSession> {
 
   Future<void> _takePicture() async {
     try {
-      // await _initializeControllerFuture;
       final image = await controller.takePicture();
       if (!mounted) return;
       await _processImage(path: image.path);
