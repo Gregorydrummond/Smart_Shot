@@ -1,0 +1,3 @@
+C:/Users/polkh/Documents/workspace/Smart_Shot/android/opencv4.6/.cxx/Debug/3y3k622s/x86_64/CMakeFiles/opencv_jni_shared.dir
+C:/Users/polkh/Documents/workspace/Smart_Shot/android/opencv4.6/.cxx/Debug/3y3k622s/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/polkh/Documents/workspace/Smart_Shot/android/opencv4.6/.cxx/Debug/3y3k622s/x86_64/CMakeFiles/rebuild_cache.dir
