@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'session.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 late List<CameraDescription> _cameras;
 
@@ -250,10 +252,8 @@ class _LiveSessionState extends State<LiveSession> {
 
   // Service and characteristics that we care about
   final Uuid serviceUuid = Uuid.parse('0000180a-0000-1000-8000-00805f9b34fb');
-  final Uuid randomCharacteristicUuid =
-      Uuid.parse('00002a58-0000-1000-8000-00805f9b34fb');
-  final Uuid switchCharacteristicUuid =
-      Uuid.parse('00002a57-0000-1000-8000-00805f9b34fb');
+  final Uuid randomCharacteristicUuid = Uuid.parse('00002a58-0000-1000-8000-00805f9b34fb');
+  final Uuid switchCharacteristicUuid = Uuid.parse('00002a57-0000-1000-8000-00805f9b34fb');
 
   @override
   void initState() {
@@ -298,62 +298,52 @@ class _LiveSessionState extends State<LiveSession> {
     _scanStream.cancel();
 
     // Connect to Smart Shot device. Method returns a stream to listen to connection state
-    Stream<ConnectionStateUpdate> _currentConnectionStatus =
-        flutterReactiveBLE.connectToDevice(
+    Stream<ConnectionStateUpdate> _currentConnectionStatus = flutterReactiveBLE.connectToDevice(
       id: smartShotDevice.id,
       connectionTimeout: const Duration(seconds: 5),
     );
 
     _currentConnectionStatus.listen((event) async {
       switch (event.connectionState) {
-        case DeviceConnectionState.connected:
-          {
-            // Connected to device
-            _discoveredServices =
-                await flutterReactiveBLE.discoverServices(smartShotDevice.id);
-            for (var service in _discoveredServices) {
-              for (var characteristic in service.characteristics) {
-                if (characteristic.characteristicId ==
-                    randomCharacteristicUuid) {
-                  randomDiscoveredCharacteristic = characteristic;
-                  randomQualifiedCharacteristic = QualifiedCharacteristic(
-                    characteristicId: randomCharacteristicUuid,
-                    serviceId: serviceUuid,
-                    deviceId: smartShotDevice.id,
-                  );
-                  break;
-                }
+        case DeviceConnectionState.connected: {     // Connected to device
+          _discoveredServices = await flutterReactiveBLE.discoverServices(smartShotDevice.id);
+          for (var service in _discoveredServices) {
+            for (var characteristic in service.characteristics) {
+              if (characteristic.characteristicId == randomCharacteristicUuid) {
+                randomDiscoveredCharacteristic = characteristic;
+                randomQualifiedCharacteristic = QualifiedCharacteristic(
+                  characteristicId: randomCharacteristicUuid,
+                  serviceId: serviceUuid,
+                  deviceId: smartShotDevice.id,
+                );
+                break;
               }
             }
-            setState(() {
-              _foundDeviceWaitingToConnect = false;
-              _connected = true;
-              _subToCharacteristic();
-            });
-            break;
           }
-        case DeviceConnectionState.connecting:
-          {
-            print('Connecting...');
-            break;
-          }
-        case DeviceConnectionState.disconnected:
-          {
-            print('Disconnected');
-            break;
-          }
-        case DeviceConnectionState.disconnecting:
-          {
-            print('Disconnecting...');
-          }
+          setState(() {
+            _foundDeviceWaitingToConnect = false;
+            _connected = true;
+            _subToCharacteristic();
+          });
+          break;
+        }
+        case DeviceConnectionState.connecting: {
+          print('Connecting...');
+          break;
+        }
+        case DeviceConnectionState.disconnected: {
+          print('Disconnected');
+          break;
+        }
+        case DeviceConnectionState.disconnecting: {
+          print('Disconnecting...');
+        }
       }
     });
   }
 
   void _subToCharacteristic() {
-    flutterReactiveBLE
-        .subscribeToCharacteristic(randomQualifiedCharacteristic)
-        .listen((data) {
+    flutterReactiveBLE.subscribeToCharacteristic(randomQualifiedCharacteristic).listen((data) {
       //print(data);
       setState(() {
         value = data.isNotEmpty ? data.first : 2;
@@ -372,7 +362,8 @@ class _LiveSessionState extends State<LiveSession> {
         title: const Text('Live Session'),
       ),
       body: Center(
-        child: Column(
+        child:
+        Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Container(
@@ -382,7 +373,8 @@ class _LiveSessionState extends State<LiveSession> {
               height: 200,
               color: Colors.orange,
               alignment: Alignment.center,
-              child: Text(
+              child:
+              Text(
                 value.toString(),
                 style: const TextStyle(
                   fontSize: 50,
