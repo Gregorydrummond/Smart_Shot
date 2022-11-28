@@ -240,7 +240,7 @@ class _LiveSessionState extends State<LiveSession> {
   bool _connected = false;
 
   // Data
-  static int value = 2;
+  static int value = 4;
 
   // Bluetooth
   late DiscoveredDevice smartShotDevice;
@@ -368,6 +368,20 @@ class _LiveSessionState extends State<LiveSession> {
 
   @override
   Widget build(BuildContext context) {
+    var shot = "";
+    switch (value) {
+      case 0:
+        shot = "Miss";
+        break;
+      case 1:
+        shot = "Point Made";
+        break;
+      case 3:
+        shot = "Swish";
+        break;
+      default:
+        shot = "Waiting";
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.amber[800],
@@ -385,7 +399,7 @@ class _LiveSessionState extends State<LiveSession> {
               color: Colors.orange,
               alignment: Alignment.center,
               child: Text(
-                value.toString(),
+                shot,
                 style: const TextStyle(
                   fontSize: 50,
                 ),
