@@ -32,7 +32,7 @@ dependencies:
   camera:
   path_provider:
   path:
-
+  syncfusion_flutter_charts: ^20.3.58
 
 
   # The following adds the Cupertino Icons font to your application.
