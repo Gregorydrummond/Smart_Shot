@@ -1,0 +1,7 @@
+Executable : C:\Users\polkh\AppData\Local\Android\sdk\cmake\3.18.1\bin\ninja.exe
+arguments : 
+-C
+C:\Users\polkh\Documents\workspace\Smart_Shot\android\opencv4.6\.cxx\Debug\3y3k622s\armeabi-v7a
+opencv_jni_shared
+jvmArgs : 
+

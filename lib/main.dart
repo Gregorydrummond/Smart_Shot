@@ -1,8 +1,20 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:camera/camera.dart';
 import 'session.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-void main() {
+late List<CameraDescription> _cameras;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  _cameras = await availableCameras();
+
   runApp(
     MaterialApp(
       theme: ThemeData.light(),
@@ -78,8 +90,7 @@ class _SessionsState extends State<Sessions> {
               ],
             ));
       case 2:
-        return const Text("chart goes here");
-
+        return const CameraSession();
       default:
         return SingleChildScrollView(
           child: Column(
@@ -386,14 +397,304 @@ class LiveSession extends StatefulWidget {
 }
 
 class _LiveSessionState extends State<LiveSession> {
+  // State management
+  bool _foundDeviceWaitingToConnect = false;
+  bool _scanStarted = false;
+  bool _connected = false;
+
+  // Data
+  static int value = 4;
+
+  // Bluetooth
+  late DiscoveredDevice smartShotDevice;
+  final flutterReactiveBLE = FlutterReactiveBle();
+  late StreamSubscription<DiscoveredDevice> _scanStream;
+  late List<DiscoveredService> _discoveredServices;
+  late QualifiedCharacteristic randomQualifiedCharacteristic;
+  late DiscoveredCharacteristic randomDiscoveredCharacteristic;
+
+  // Service and characteristics that we care about
+  final Uuid serviceUuid = Uuid.parse('0000180a-0000-1000-8000-00805f9b34fb');
+  final Uuid randomCharacteristicUuid =
+      Uuid.parse('00002a58-0000-1000-8000-00805f9b34fb');
+  final Uuid switchCharacteristicUuid =
+      Uuid.parse('00002a57-0000-1000-8000-00805f9b34fb');
+
+  @override
+  void initState() {
+    super.initState();
+
+    _startScan();
+  }
+
+  // Start a scan for peripheral devices
+  void _startScan() async {
+    // Platform permissions handling stuff
+    bool permGranted = false;
+    setState(() {
+      _scanStarted = true;
+    });
+    if (Platform.isAndroid) {
+      if (await Permission.location.request().isGranted) {
+        // Either the permission was already granted before or the user just granted it.
+        permGranted = true;
+      }
+    } else if (Platform.isIOS) {
+      permGranted = true;
+    }
+
+    if (permGranted) {
+      _scanStream =
+          flutterReactiveBLE.scanForDevices(withServices: []).listen((device) {
+        if (device.name == 'SmartShot') {
+          setState(() {
+            smartShotDevice = device;
+            _foundDeviceWaitingToConnect = true;
+            _connectToDevice();
+            //print('Found device for real: ${device.name}');
+          });
+        }
+      });
+    }
+  }
+
+  void _connectToDevice() {
+    // Stop scanning
+    _scanStream.cancel();
+
+    // Connect to Smart Shot device. Method returns a stream to listen to connection state
+    Stream<ConnectionStateUpdate> _currentConnectionStatus =
+        flutterReactiveBLE.connectToDevice(
+      id: smartShotDevice.id,
+      connectionTimeout: const Duration(seconds: 5),
+    );
+
+    _currentConnectionStatus.listen((event) async {
+      switch (event.connectionState) {
+        case DeviceConnectionState.connected:
+          {
+            // Connected to device
+            _discoveredServices =
+                await flutterReactiveBLE.discoverServices(smartShotDevice.id);
+            for (var service in _discoveredServices) {
+              for (var characteristic in service.characteristics) {
+                if (characteristic.characteristicId ==
+                    randomCharacteristicUuid) {
+                  randomDiscoveredCharacteristic = characteristic;
+                  randomQualifiedCharacteristic = QualifiedCharacteristic(
+                    characteristicId: randomCharacteristicUuid,
+                    serviceId: serviceUuid,
+                    deviceId: smartShotDevice.id,
+                  );
+                  break;
+                }
+              }
+            }
+            setState(() {
+              _foundDeviceWaitingToConnect = false;
+              _connected = true;
+              _subToCharacteristic();
+            });
+            break;
+          }
+        case DeviceConnectionState.connecting:
+          {
+            print('Connecting...');
+            break;
+          }
+        case DeviceConnectionState.disconnected:
+          {
+            print('Disconnected');
+            break;
+          }
+        case DeviceConnectionState.disconnecting:
+          {
+            print('Disconnecting...');
+          }
+      }
+    });
+  }
+
+  void _subToCharacteristic() {
+    flutterReactiveBLE
+        .subscribeToCharacteristic(randomQualifiedCharacteristic)
+        .listen((data) {
+      //print(data);
+      setState(() {
+        value = data.isNotEmpty ? data.first : 2;
+        //print(value);
+      });
+    }, onError: (dynamic error) {
+      print('Error: $error');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    var shot = "";
+    switch (value) {
+      case 0:
+        shot = "Miss";
+        break;
+      case 1:
+        shot = "Point Made";
+        break;
+      case 3:
+        shot = "Swish";
+        break;
+      default:
+        shot = "Waiting";
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[800],
         title: const Text('Live Session'),
       ),
-      body: const Text('Camera feed and shot data'),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              width: 200,
+              height: 200,
+              color: Colors.orange,
+              alignment: Alignment.center,
+              child: Text(
+                shot,
+                style: const TextStyle(
+                  fontSize: 50,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
+              width: 200,
+              height: 200,
+              color: Colors.green,
+              alignment: Alignment.center,
+              child: const Text(
+                'Turn On',
+                style: TextStyle(
+                  fontSize: 50,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CameraSession extends StatefulWidget {
+  const CameraSession({super.key});
+
+  @override
+  State<CameraSession> createState() => _CameraSessionState();
+}
+
+class _CameraSessionState extends State<CameraSession> {
+  static const platform = MethodChannel('smartshot/opencv');
+
+  late CameraController controller;
+  // late Future<void> _initializeControllerFuture;
+
+  bool showCameraPreview = true;
+
+  late String imagePath;
+
+  Future<void> _processImage({required String path}) async {
+    try {
+      String returnPath =
+          await platform.invokeMethod('processImage', {"path": path});
+      print(returnPath);
+      setState(() {
+        imagePath = path;
+        showCameraPreview = false;
+      });
+    } on PlatformException catch (e) {
+      print(e);
+      return;
+    }
+  }
+
+  Future<void> _takePicture() async {
+    try {
+      final image = await controller.takePicture();
+      if (!mounted) return;
+      await _processImage(path: image.path);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void _returnToPreview() {
+    setState(() {
+      showCameraPreview = true;
+    });
+  }
+
+  Widget _pickBody() {
+    if (showCameraPreview == true) {
+      return CameraPreview(controller);
+    } else {
+      return Image.file(File(imagePath));
+    }
+  }
+
+  Widget _pickFloatingAction() {
+    if (showCameraPreview == true) {
+      return FloatingActionButton(
+        onPressed: _takePicture,
+        child: const Icon(Icons.add_a_photo),
+      );
+    } else {
+      return FloatingActionButton(
+        onPressed: _returnToPreview,
+        tooltip: 'Return To Preview',
+        child: const Icon(Icons.arrow_back_rounded),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    controller = CameraController(_cameras[0], ResolutionPreset.medium);
+    controller.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    }).catchError((Object e) {
+      if (e is CameraException) {
+        switch (e.code) {
+          case 'CameraAccessDenied':
+            print('User denied camera access.');
+            break;
+          default:
+            print('Handle other errors.');
+            break;
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pickBody(),
+      floatingActionButton: _pickFloatingAction(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
