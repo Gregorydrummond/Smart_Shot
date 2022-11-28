@@ -78,95 +78,8 @@ class _SessionsState extends State<Sessions> {
               ],
             ));
       case 2:
-        return Stack(
-          children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                width: 360,
-                height: 175,
-                color: Colors.grey[200],
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Analytics',
-                          style: TextStyle(
-                              fontSize: 25.0,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(198, 28, 50, 113))),
-                    ]),
-              ),
-            ),
-            Positioned(
-              right: 167,
-              top: 10,
-              child: Container(
-                //   color: Colors.white,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Color.fromARGB(198, 28, 50, 113),
-                    width: 1,
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.circular(5)),
-                ),
+        return const Text("chart goes here");
 
-                margin: EdgeInsets.all(20),
-                height: 100,
-                width: 160,
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('144',
-                          style: TextStyle(
-                              fontSize: 30.0,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 12, 21, 96))),
-                      Text('Lifetime Shots',
-                          style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 157, 159, 172))),
-                    ]),
-              ),
-            ),
-            Positioned(
-              left: 167,
-              top: 10,
-              child: Container(
-                //   color: Colors.white,
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Color.fromARGB(198, 28, 50, 113),
-                    width: 1,
-                  ),
-                  borderRadius: const BorderRadius.all(Radius.circular(5)),
-                ),
-
-                margin: EdgeInsets.all(20),
-                height: 100,
-                width: 160,
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(' 45.0',
-                          style: TextStyle(
-                              fontSize: 30.0,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 12, 21, 96))),
-                      Text('Shot %',
-                          style: TextStyle(
-                              fontSize: 18.0,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 157, 159, 172))),
-                    ]),
-              ),
-            ),
-          ],
-        );
       default:
         return SingleChildScrollView(
           child: Column(
@@ -282,132 +195,152 @@ class SessionCard extends StatelessWidget {
 
 class SessionDetails extends StatelessWidget {
   Session session;
-  SessionDetails(this.session);
+  SessionDetails(this.session, {super.key});
 
   @override
   Widget build(BuildContext context) {
+    final List<ChartData> chartData = [
+      ChartData('David', 25),
+      ChartData('Steve', 38),
+      ChartData('Jack', 34),
+      ChartData('Others', 52)
+    ];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[800],
         title: const Text('Session Details'),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: Container(
-              width: 360,
-              height: 145,
-              //     color: Colors.grey[200],
-              decoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                color: Colors.grey[200],
-                // border: Border.all(
-                //   color: Color.fromARGB(198, 28, 50, 113),
-                //   width: 1,
-                // ),
-                //  borderRadius: const BorderRadius.all(Radius.circular(5)),
-              ),
+          Stack(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Container(
+                  width: 360,
+                  height: 145,
+                  //     color: Colors.grey[200],
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: Colors.grey[200],
+                    // border: Border.all(
+                    //   color: Color.fromARGB(198, 28, 50, 113),
+                    //   width: 1,
+                    // ),
+                    //  borderRadius: const BorderRadius.all(Radius.circular(5)),
+                  ),
 
-              margin: EdgeInsets.all(10),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        'Date: ${session.date.month}/${session.date.day}/${session.date.year}',
-                        style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(198, 28, 50, 113))),
-                  ]),
-            ),
-          ),
-
-          Positioned(
-            right: 167,
-            top: 10,
-            child: Container(
-              //   color: Colors.white,
-              decoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                color: Colors.white,
-                border: Border.all(
-                  color: Color.fromARGB(198, 28, 50, 113),
-                  width: 1,
+                  margin: EdgeInsets.all(10),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            'Date: ${session.date.month}/${session.date.day}/${session.date.year}',
+                            style: TextStyle(
+                                fontSize: 15.0,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(198, 28, 50, 113))),
+                      ]),
                 ),
-                borderRadius: const BorderRadius.all(Radius.circular(5)),
               ),
 
-              margin: EdgeInsets.all(20),
-              height: 100,
-              width: 160,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(' ${session.totalShots}',
-                        style: TextStyle(
-                            fontSize: 30.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 12, 21, 96))),
-                    Text('Total Shots',
-                        style: TextStyle(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 157, 159, 172))),
-                  ]),
-            ),
-          ),
+              Positioned(
+                right: 167,
+                top: 10,
+                child: Container(
+                  //   color: Colors.white,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Color.fromARGB(198, 28, 50, 113),
+                      width: 1,
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
+                  ),
 
-          Positioned(
-            left: 167,
-            top: 10,
-            child: Container(
-              //   color: Colors.white,
-              decoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                color: Colors.white,
-                border: Border.all(
-                  color: Color.fromARGB(198, 28, 50, 113),
-                  width: 1,
+                  margin: EdgeInsets.all(20),
+                  height: 100,
+                  width: 160,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(' ${session.totalShots}',
+                            style: TextStyle(
+                                fontSize: 30.0,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 12, 21, 96))),
+                        Text('Total Shots',
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 157, 159, 172))),
+                      ]),
                 ),
-                borderRadius: const BorderRadius.all(Radius.circular(5)),
               ),
 
-              margin: EdgeInsets.all(20),
-              height: 100,
-              width: 160,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(' ${session.shotPercentage * 100}',
-                        style: TextStyle(
-                            fontSize: 30.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 12, 21, 96))),
-                    Text('Shot %',
-                        style: TextStyle(
-                            fontSize: 18.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 157, 159, 172))),
-                  ]),
-            ),
-          ),
+              Positioned(
+                left: 167,
+                top: 10,
+                child: Container(
+                  //   color: Colors.white,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.rectangle,
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Color.fromARGB(198, 28, 50, 113),
+                      width: 1,
+                    ),
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
+                  ),
 
-          // const Text(
-          //   'Shot History',
-          //   textAlign: TextAlign.center,
-          // ),
-          // Column(
-          //   children: session.shots.map((shot) {
-          //     if (shot == 0) {
-          //       return Text('Air Ball');
-          //     } else if (shot == 1) {
-          //       return Text('Miss');
-          //     } else {
-          //       return Text('Scored');
-          //     }
-          //   }).toList(),
-          // )
+                  margin: EdgeInsets.all(20),
+                  height: 100,
+                  width: 160,
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(' ${session.shotPercentage * 100}',
+                            style: TextStyle(
+                                fontSize: 30.0,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 12, 21, 96))),
+                        Text('Shot %',
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 157, 159, 172))),
+                      ]),
+                ),
+              ),
+
+              // const Text(
+              //   'Shot History',
+              //   textAlign: TextAlign.center,
+              // ),
+              // Column(
+              //   children: session.shots.map((shot) {
+              //     if (shot == 0) {
+              //       return Text('Air Ball');
+              //     } else if (shot == 1) {
+              //       return Text('Miss');
+              //     } else {
+              //       return Text('Scored');
+              //     }
+              //   }).toList(),
+              // )
+            ],
+          ),
+          Center(
+              child: Container(
+                  child: SfCircularChart(series: <CircularSeries>[
+            // Render pie chart
+            PieSeries<ChartData, String>(
+                dataSource: chartData,
+                pointColorMapper: (ChartData data, _) => data.color,
+                xValueMapper: (ChartData data, _) => data.x,
+                yValueMapper: (ChartData data, _) => data.y)
+          ])))
         ],
       ),
     );
@@ -417,13 +350,13 @@ class SessionDetails extends StatelessWidget {
 // class PieChart extends StatelessWidget {
 //   const PieChart({super.key});
 //   @override
-//   Widget build(BuildContext context) {
-//     final List<ChartData> chartData = [
-//       ChartData('David', 25),
-//       ChartData('Steve', 38),
-//       ChartData('Jack', 34),
-//       ChartData('Others', 52)
-//     ];
+// Widget build(BuildContext context) {
+//   final List<ChartData> chartData = [
+//     ChartData('David', 25),
+//     ChartData('Steve', 38),
+//     ChartData('Jack', 34),
+//     ChartData('Others', 52)
+//   ];
 //     return Scaffold(
 //         body: Center(
 //             child: Container(
@@ -438,12 +371,12 @@ class SessionDetails extends StatelessWidget {
 //   }
 // }
 
-// class ChartData {
-//   ChartData(this.x, this.y, [this.color]);
-//   final String x;
-//   final double y;
-//   final Color color;
-// }
+class ChartData {
+  ChartData(this.x, this.y, [this.color]);
+  final String x;
+  final double y;
+  final Color? color;
+}
 
 class LiveSession extends StatefulWidget {
   const LiveSession({super.key});
