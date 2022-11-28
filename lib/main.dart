@@ -323,43 +323,39 @@ class SessionDetails extends StatelessWidget {
             ),
           ),
 
-          Column(
-            children: [
-              Positioned(
-                right: 167,
-                top: 10,
-                child: Container(
-                  //   color: Colors.white,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Color.fromARGB(198, 28, 50, 113),
-                      width: 1,
-                    ),
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  ),
-
-                  margin: EdgeInsets.all(20),
-                  height: 100,
-                  width: 160,
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(' ${session.totalShots}',
-                            style: TextStyle(
-                                fontSize: 30.0,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 12, 21, 96))),
-                        Text('Total Shots',
-                            style: TextStyle(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 157, 159, 172))),
-                      ]),
+          Positioned(
+            right: 167,
+            top: 10,
+            child: Container(
+              //   color: Colors.white,
+              decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                color: Colors.white,
+                border: Border.all(
+                  color: Color.fromARGB(198, 28, 50, 113),
+                  width: 1,
                 ),
+                borderRadius: const BorderRadius.all(Radius.circular(5)),
               ),
-            ],
+
+              margin: EdgeInsets.all(20),
+              height: 100,
+              width: 160,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(' ${session.totalShots}',
+                        style: TextStyle(
+                            fontSize: 30.0,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 12, 21, 96))),
+                    Text('Total Shots',
+                        style: TextStyle(
+                            fontSize: 18.0,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 157, 159, 172))),
+                  ]),
+            ),
           ),
 
           Positioned(
@@ -396,11 +392,7 @@ class SessionDetails extends StatelessWidget {
                   ]),
             ),
           ),
-          Text('Shot %',
-              style: TextStyle(
-                  fontSize: 18.0,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 157, 159, 172))),
+
           // const Text(
           //   'Shot History',
           //   textAlign: TextAlign.center,
