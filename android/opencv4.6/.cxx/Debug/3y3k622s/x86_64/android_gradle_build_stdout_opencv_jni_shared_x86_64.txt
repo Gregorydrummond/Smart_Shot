@@ -1,0 +1,2 @@
+ninja: Entering directory `C:\Users\polkh\Documents\workspace\Smart_Shot\android\opencv4.6\.cxx\Debug\3y3k622s\x86_64'
+ninja: no work to do.
