@@ -1,0 +1,7 @@
+Executable : C:\Users\Greg\AppData\Local\Android\sdk\cmake\3.18.1\bin\ninja.exe
+arguments : 
+-C
+C:\Users\Greg\AndroidStudioProjects\smart_shot\android\opencv4.6\.cxx\Debug\1p2t5q1y\x86_64
+opencv_jni_shared
+jvmArgs : 
+
