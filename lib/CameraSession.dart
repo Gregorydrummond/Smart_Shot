@@ -15,76 +15,40 @@ class CameraSession extends StatefulWidget {
 class _CameraSessionState extends State<CameraSession> {
   static const platform = MethodChannel('smartshot/opencv');
 
+  List<int> boundingBox = [0];
+  int frame = 0;
+  GlobalKey camKey = GlobalKey();
+
   late CameraController controller;
-  // late Future<void> _initializeControllerFuture;
 
-  bool showCameraPreview = true;
-
-  late String imagePath;
-
-  Future<void> _processImage({required String path}) async {
+  Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
     try {
-      String returnPath =
-          await platform.invokeMethod('processImage', {"path": path});
-      print(returnPath);
-      setState(() {
-        imagePath = path;
-        showCameraPreview = false;
-      });
+      boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
+      setState(() {});
     } on PlatformException catch (e) {
-      print(e);
+      // print(e);
       return;
-    }
-  }
-
-  Future<void> _takePicture() async {
-    try {
-      final image = await controller.takePicture();
-      if (!mounted) return;
-      await _processImage(path: image.path);
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void _returnToPreview() {
-    setState(() {
-      showCameraPreview = true;
-    });
-  }
-
-  Widget _pickBody() {
-    if (showCameraPreview == true) {
-      return CameraPreview(controller);
-    } else {
-      return Image.file(File(imagePath));
-    }
-  }
-
-  Widget _pickFloatingAction() {
-    if (showCameraPreview == true) {
-      return FloatingActionButton(
-        onPressed: _takePicture,
-        child: const Icon(Icons.add_a_photo),
-      );
-    } else {
-      return FloatingActionButton(
-        onPressed: _returnToPreview,
-        tooltip: 'Return To Preview',
-        child: const Icon(Icons.arrow_back_rounded),
-      );
     }
   }
 
   @override
   void initState() {
     super.initState();
-    controller = CameraController(widget.cameras[0], ResolutionPreset.medium);
+    controller = CameraController(widget.cameras[0], ResolutionPreset.low);
     controller.initialize().then((_) {
       if (!mounted) {
         return;
       }
       setState(() {});
+      controller.startImageStream((image) async {
+        if (frame == 3) {
+          frame = 0;
+          await _processImage(width: image.width, height: image.height, bytes: image.planes[0].bytes);
+        }
+        else {
+          frame += 1;
+        }
+      });
     }).catchError((Object e) {
       if (e is CameraException) {
         switch (e.code) {
@@ -101,16 +65,49 @@ class _CameraSessionState extends State<CameraSession> {
 
   @override
   void dispose() {
+    controller.stopImageStream();
     controller.dispose();
     super.dispose();
+  }
+
+  Widget boundingBoxWidget() {
+    final size = MediaQuery.of(context).size;
+    Widget box = Container();
+
+    try {
+      RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
+      double height = renderBox.size.height;
+
+      if (boundingBox[0] == 1) {
+        box = Positioned(
+          left: (boundingBox[1] / 240) * size.width,
+          top: (boundingBox[2] / 340) * height,
+          width: (boundingBox[3] / 240) * size.width,
+          height: (boundingBox[4] / 340) * height,
+          child: Container(
+            decoration: BoxDecoration(border: Border.all(color: Color.fromARGB(255, 0, 255, 0))),
+            child: Text("Face", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0)),),
+          )
+        );
+      }
+    } catch (e) {
+      print(e);
+    }
+
+    return box;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pickBody(),
-      floatingActionButton: _pickFloatingAction(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: Stack(
+        children: [
+          buildCamera(),
+          boundingBoxWidget()
+        ]
+      ),
     );
   }
+
+  Widget buildCamera() => CameraPreview(controller, key: camKey);
 }

@@ -1,10 +1,13 @@
 package com.smartshot.smart_shot
 
 import androidx.annotation.NonNull
+import com.signify.hue.flutterreactiveble.utils.discard
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import org.opencv.android.OpenCVLoader
+import org.opencv.core.Core.*
+import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.core.MatOfRect
 import org.opencv.core.Scalar
@@ -58,22 +61,35 @@ class MainActivity: FlutterActivity() {
       // This method is invoked on the main thread.
       if (call.method == "processImage") {
         if (_opencvLoaded) {
-          if (call.hasArgument("path")) {
-            val path = call.argument<String>("path");
-            var image: Mat = imread(path);
-            if (!image.empty()) {
-              val rects = detectFace(image, haarFace);
-              drawRectangles(image, rects);
-              imwrite(path, image);
-              image.release();
-              result.success("Success");
+          if (call.hasArgument("width") && call.hasArgument("height") && call.hasArgument("bytes")) {
+            val width = call.argument<Int>("width")!!;
+            val height = call.argument<Int>("height")!!;
+            val bytes = call.argument<ByteArray>("bytes");
+            var image: Mat = Mat(height, width, CvType.CV_8UC1);
+            image.put(0,0, bytes);
+            rotate(image, image, ROTATE_90_CLOCKWISE)
+            val rects = detectFace(image, haarFace);
+            image.release();
+            if (rects.empty()) {
+              val value = IntArray(1);
+              value[0] = 0;
+              rects.discard();
+              result.success(value);
             }
             else {
-              result.error("IMAGE ERROR", "Was not able to load image", null);
+              val rect = rects.toArray()[0];
+              val value = IntArray(5);
+              value[0] = 1;
+              value[1] = rect.x;
+              value[2] = rect.y;
+              value[3] = rect.width;
+              value[4] = rect.height;
+              rect.discard();
+              result.success(value);
             }
           }
           else {
-            result.error("ARGUMENT ERROR", "Path not provided.", null);
+            result.error("ARGUMENT ERROR", "Invalid arguments provided.", null);
           }
         }
         else {
@@ -87,11 +103,9 @@ class MainActivity: FlutterActivity() {
   }
 
   fun detectFace(image: Mat, cascade: CascadeClassifier): MatOfRect {
-    var gray = Mat();
-    cvtColor(image, gray, COLOR_BGR2GRAY);
     var rectangles = MatOfRect();
     val minSize = Size(30.0, 30.0);
-    cascade.detectMultiScale(gray, rectangles, 1.1, 5, CASCADE_SCALE_IMAGE, minSize);
+    cascade.detectMultiScale(image, rectangles, 1.1, 5, CASCADE_SCALE_IMAGE, minSize);
     return rectangles;
   }
 
