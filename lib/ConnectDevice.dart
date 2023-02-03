@@ -173,7 +173,7 @@ class _ConnectDeviceState extends State<ConnectDevice> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.orangeAccent,
         title: const Text('Live Session'),
       ),
       body: startScan(),

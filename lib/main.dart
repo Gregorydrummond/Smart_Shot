@@ -53,13 +53,24 @@ class _MainPageState extends State<MainPage> {
   static final User user = User('Greg');
   // Indices and corresponding widget/screen for the bottom nav bar
   int currentIndex = 0;
-  final screens = [
-    Home(
-      user: user,
-    ),
-    SessionPage(user: user),
-    CameraSession(cameras: _cameras),
-  ];
+
+  Widget selectPage() {
+    List<Widget> screens = [
+      Home(
+        user: user,
+      ),
+      SessionPage(user: user, cameras: _cameras, end: endSession),
+      Container()
+    ];
+
+    return screens[currentIndex];
+  }
+
+  endSession() {
+    setState(() {
+      currentIndex = 0;
+    });
+  }
 
   // For future use
   @override
@@ -70,10 +81,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: currentIndex,
-        children: screens,
-      ),
+      body: selectPage(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         items: const [
@@ -86,8 +94,8 @@ class _MainPageState extends State<MainPage> {
             label: "Live Session",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.camera),
-            label: "Tracker",
+            icon: Icon(Icons.list),
+            label: "Sessions",
           ),
         ],
         onTap: (index) {

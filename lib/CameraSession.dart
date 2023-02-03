@@ -99,13 +99,11 @@ class _CameraSessionState extends State<CameraSession> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          buildCamera(),
-          boundingBoxWidget()
-        ]
-      ),
+    return Stack(
+      children: [
+        buildCamera(),
+        boundingBoxWidget()
+      ]
     );
   }
 
