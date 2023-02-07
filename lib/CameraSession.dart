@@ -21,16 +21,6 @@ class _CameraSessionState extends State<CameraSession> {
 
   late CameraController controller;
 
-  Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
-    try {
-      boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
-      setState(() {});
-    } on PlatformException catch (e) {
-      // print(e);
-      return;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -40,15 +30,6 @@ class _CameraSessionState extends State<CameraSession> {
         return;
       }
       setState(() {});
-      controller.startImageStream((image) async {
-        if (frame == 3) {
-          frame = 0;
-          await _processImage(width: image.width, height: image.height, bytes: image.planes[0].bytes);
-        }
-        else {
-          frame += 1;
-        }
-      });
     }).catchError((Object e) {
       if (e is CameraException) {
         switch (e.code) {
@@ -70,7 +51,49 @@ class _CameraSessionState extends State<CameraSession> {
     super.dispose();
   }
 
-  Widget boundingBoxWidget() {
+  Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
+    try {
+      boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
+      setState(() {});
+    } on PlatformException catch (e) {
+      // print(e);
+      return;
+    }
+  }
+
+  void _startTracking() {
+    controller.startImageStream((image) async {
+      await _processImage(width: image.width, height: image.height, bytes: image.planes[0].bytes);
+    });
+  }
+
+  List<Widget> buildWidgets() {
+    List<Widget> widgets = [];
+    widgets.add(buildCamera());
+    
+    if (boundingBox[0] == 0) {
+      widgets.add(buildPrompt());
+    }
+    else {
+      widgets.add(buildBoundingBoxWidget());
+    }
+
+    return widgets;
+  }
+
+  Widget buildPrompt() {
+    return Positioned(
+      child: Column(
+        children: [
+          Text("Position camera to fill the basketball hoop"),
+          TextButton(onPressed: _startTracking,
+          child: const Text("Start Camera Tracking"))
+        ],
+      )
+    );
+  }
+
+  Widget buildBoundingBoxWidget() {
     final size = MediaQuery.of(context).size;
     Widget box = Container();
 
@@ -78,15 +101,15 @@ class _CameraSessionState extends State<CameraSession> {
       RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
       double height = renderBox.size.height;
 
-      if (boundingBox[0] == 1) {
+      if (boundingBox[0] == 2) {
         box = Positioned(
-          left: (boundingBox[1] / 240) * size.width,
-          top: (boundingBox[2] / 340) * height,
-          width: (boundingBox[3] / 240) * size.width,
-          height: (boundingBox[4] / 340) * height,
+          left: (boundingBox[1] / boundingBox[5]) * size.width,
+          top: (boundingBox[2] / boundingBox[6]) * height,
+          width: (boundingBox[3] / boundingBox[5]) * size.width,
+          height: (boundingBox[4] / boundingBox[6]) * height,
           child: Container(
-            decoration: BoxDecoration(border: Border.all(color: Color.fromARGB(255, 0, 255, 0))),
-            child: Text("Face", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0)),),
+            decoration: BoxDecoration(border: Border.all(color: const Color.fromARGB(255, 0, 255, 0))),
+            child: const Text("Ball", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0))),
           )
         );
       }
@@ -97,15 +120,13 @@ class _CameraSessionState extends State<CameraSession> {
     return box;
   }
 
+  Widget buildCamera() => CameraPreview(controller, key: camKey);
+
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: [
-        buildCamera(),
-        boundingBoxWidget()
-      ]
+      children: buildWidgets()
     );
   }
 
-  Widget buildCamera() => CameraPreview(controller, key: camKey);
 }

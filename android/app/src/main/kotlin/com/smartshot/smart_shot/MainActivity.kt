@@ -69,21 +69,24 @@ class MainActivity: FlutterActivity() {
             image.put(0,0, bytes);
             rotate(image, image, ROTATE_90_CLOCKWISE)
             val rects = detectFace(image, haarFace);
-            image.release();
             if (rects.empty()) {
+              image.release();
               val value = IntArray(1);
-              value[0] = 0;
+              value[0] = 1;
               rects.discard();
               result.success(value);
             }
             else {
               val rect = rects.toArray()[0];
-              val value = IntArray(5);
-              value[0] = 1;
+              val value = IntArray(7);
+              value[0] = 2;
               value[1] = rect.x;
               value[2] = rect.y;
               value[3] = rect.width;
               value[4] = rect.height;
+              value[5] = image.width();
+              value[6] = image.height();
+              image.release();
               rect.discard();
               result.success(value);
             }
