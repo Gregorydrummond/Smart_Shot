@@ -25,6 +25,14 @@ class _HomeState extends State<Home> {
     //calculateUserRating(player.sessions);
   }
 
+  void showConnectedToast() {
+    setState(() {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("SmartShot Device Connected!"),
+      ));
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,6 +41,19 @@ class _HomeState extends State<Home> {
         title: const Text(
           'Home',
         ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.bluetooth),
+            tooltip: "Connect to SmartShot device",
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => ConnectDevice(
+                  onConnection: showConnectedToast,
+                ),
+              ));
+            },
+          )
+        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -55,10 +76,11 @@ class _HomeState extends State<Home> {
               ),
               onTap: () {
                 // Close navigation drawer
-                Navigator.pop(context);
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => ConnectDevice(),
-                ));
+                // Navigator.pop(context);
+                // Navigator.of(context).push(MaterialPageRoute(
+                //   builder: (context) =>
+                //       ConnectDevice(onConnection: showConnectedToast),
+                // ));
               },
             ),
           ],
