@@ -1,0 +1,7 @@
+Executable : C:\Users\RBOCK\AppData\Local\Android\sdk\cmake\3.18.1\bin\ninja.exe
+arguments : 
+-C
+D:\2022-2023\SPRING\CEN3908C\Smart_Shot\android\opencv4.6\.cxx\Debug\3uq3m372\armeabi-v7a
+opencv_jni_shared
+jvmArgs : 
+
