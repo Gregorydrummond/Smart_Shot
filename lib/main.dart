@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'package:smart_shot/ConnectDevice.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -11,6 +12,7 @@ import 'Home.dart';
 import 'SessionPage.dart';
 import 'CameraSession.dart';
 import 'User.dart';
+import 'ConnectDevice.dart';
 
 late List<CameraDescription> _cameras;
 
@@ -76,6 +78,9 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+
+    // If device has been connected before, reconnect automatically
+    if (ConnectDevice.connectedBefore) {}
   }
 
   @override
