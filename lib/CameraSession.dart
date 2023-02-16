@@ -20,15 +20,20 @@ class _CameraSessionState extends State<CameraSession> {
   GlobalKey camKey = GlobalKey();
 
   late CameraController controller;
+  double zoom = 1.0;
+  double maxZoom = 1.0;
+  double minZoom = 1.0;
 
   @override
   void initState() {
     super.initState();
     controller = CameraController(widget.cameras[0], ResolutionPreset.low);
-    controller.initialize().then((_) {
+    controller.initialize().then((_) async {
       if (!mounted) {
         return;
       }
+      maxZoom = await controller.getMaxZoomLevel();
+      minZoom = await controller.getMinZoomLevel();
       setState(() {});
     }).catchError((Object e) {
       if (e is CameraException) {
@@ -88,13 +93,43 @@ class _CameraSessionState extends State<CameraSession> {
   }
 
   Widget buildPrompt() {
-    return Positioned(
-      child: Column(
-        children: [
-          Text("Position camera to fill the basketball hoop"),
-          TextButton(onPressed: _startTracking,
-          child: const Text("Start Camera Tracking"))
-        ],
+    double height = 0;
+    try {
+      RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
+      height = renderBox.size.height;
+    }
+    catch (e) {}
+    return 
+    Center(
+      child: 
+      Container(
+        margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.25),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              children: [
+                const Text("Position camera so that the hoop fills the view", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,)),
+                TextButton(
+                  onPressed: _startTracking,
+                  style: TextButton.styleFrom(backgroundColor: Colors.orangeAccent),
+                  child: const Text("Start Camera Tracking", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+                ),
+              ],
+            ),
+            Slider(
+              value: zoom,
+              max: maxZoom,
+              min: minZoom,
+              onChanged: (double value) {
+                setState(() {
+                  zoom = value;
+                  controller.setZoomLevel(zoom);
+                });
+              }
+            ),
+          ],
+        ),
       )
     );
   }
@@ -114,7 +149,7 @@ class _CameraSessionState extends State<CameraSession> {
           width: (boundingBox[3] / boundingBox[5]) * size.width,
           height: (boundingBox[4] / boundingBox[6]) * height,
           child: Container(
-            decoration: BoxDecoration(border: Border.all(color: const Color.fromARGB(255, 0, 255, 0))),
+            decoration: BoxDecoration(border: Border.all(color: const Color.fromARGB(255, 0, 255, 0), width: 2.0)),
             child: const Text("Ball", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0))),
           )
         );
