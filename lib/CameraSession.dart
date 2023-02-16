@@ -47,16 +47,22 @@ class _CameraSessionState extends State<CameraSession> {
   @override
   void dispose() {
     controller.stopImageStream();
+    platform.invokeMethod('endPorcessing');
     controller.dispose();
     super.dispose();
   }
 
   Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
     try {
-      boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
-      setState(() {});
+      if (frame % 1 == 0) {
+        frame = 1;
+        boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
+        setState(() {});
+      }
+      else {
+        frame += 1;
+      }
     } on PlatformException catch (e) {
-      // print(e);
       return;
     }
   }
