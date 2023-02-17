@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -19,6 +21,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   _cameras = await availableCameras();
+  final dir = await getApplicationSupportDirectory();
+  final isar = await Isar.open(
+  [SessionSchema],
+  directory: dir.path,
+  );
 
   runApp(const MyApp());
 }
@@ -57,18 +64,63 @@ class _MainPageState extends State<MainPage> {
   static final User user = User('Greg');
   // Indices and corresponding widget/screen for the bottom nav bar
   int currentIndex = 0;
-
+  int count =0;
   Widget selectPage() {
+    
     List<Widget> screens = [
       Home(
         user: user,
       ),
       SessionPage(user: user, cameras: _cameras, end: endSession),
-      Container()
+      Container(
+         child: Column(
+          children: [
+            TextButton(onPressed: (){
+              Session session = Session();
+              session.shotTaken(ShotType.make);
+              session.shotTaken(ShotType.make);
+              session.endSession(user);
+              service.saveSession(Session());
+             
+              }, child: Text('Add Session')),
+              TextButton(onPressed: ()async{
+              List<Session> list = await  service.getAllSessions();
+              
+              setState(() {
+                count = list.length;
+              });
+              }, child : Text('Get Sessions')),
+
+              Text(count.toString()) 
+          ],
+        ),
+      )
     ];
 
     return screens[currentIndex];
   }
+
+  // child: Column(
+  //         children: [
+  //           TextButton(onPressed: (){
+  //             Session session = Session();
+  //             session.shotTaken(ShotType.make);
+  //             session.shotTaken(ShotType.make);
+  //             session.endSession(user);
+  //             service.saveSession(Session());
+             
+  //             }, child: Text('Add Session')),
+  //             TextButton(onPressed: ()async{
+  //             List<Session> list = await  service.getAllSessions();
+              
+  //             setState(() {
+  //               count = list.length;
+  //             });
+  //             }, child : Text('Get Sessions')),
+
+  //             Text(count.toString()) 
+  //         ],
+  //       ),
 
   endSession() {
     setState(() {

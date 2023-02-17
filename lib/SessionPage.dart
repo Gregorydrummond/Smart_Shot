@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_shot/CameraSession.dart';
+import 'package:smart_shot/isar_service.dart';
 import 'dart:io';
 import 'dart:async';
 import 'ConnectDevice.dart';
@@ -30,6 +33,7 @@ class _SessionPageState extends State<SessionPage> {
   late Session session;
   bool sessionStarted = false;
   GlobalKey camKey = GlobalKey();
+  final service = IsarService();
 
   // Data
   int shot = 0;
@@ -172,6 +176,7 @@ class _SessionPageState extends State<SessionPage> {
   // End session
   void endSession() {
     session.endSession(widget.user);
+    service.saveSession(session);
     widget.user.sessions.add(session);
     print(widget.user.totalShots);
     widget.end();

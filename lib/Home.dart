@@ -255,7 +255,7 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
   void initState() {
     // Get data
     chartData = getChartData(widget.user.sessions);
-
+    
     super.initState();
   }
 
