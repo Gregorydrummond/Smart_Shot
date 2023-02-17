@@ -73,6 +73,8 @@ class _CameraSessionState extends State<CameraSession> {
   }
 
   void _startTracking() {
+    controller.setExposureMode(ExposureMode.locked);
+    controller.setFocusMode(FocusMode.locked);
     controller.startImageStream((image) async {
       await _processImage(width: image.width, height: image.height, bytes: image.planes[0].bytes);
     });
@@ -99,11 +101,15 @@ class _CameraSessionState extends State<CameraSession> {
       height = renderBox.size.height;
     }
     catch (e) {}
+    if (height == 0) {
+      setState(() {});
+    }
     return 
-    Center(
-      child: 
+    // Center(
+    //   child: 
       Container(
-        margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.25),
+        height: height,
+        // padding: EdgeInsets.only(top: height * 0.05),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -130,8 +136,8 @@ class _CameraSessionState extends State<CameraSession> {
             ),
           ],
         ),
-      )
-    );
+      );
+    // );
   }
 
   Widget buildBoundingBoxWidget() {
