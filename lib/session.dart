@@ -1,16 +1,23 @@
-import 'package:smart_shot/Session.dart';
+//import 'package:smart_shot/session.dart';
 import 'package:smart_shot/User.dart';
+import 'package:isar/isar.dart';
+
+part 'session.g.dart';
 
 enum ShotType { make, miss }
 
+@Collection()
 class Session {
+  Id id = isarAutoIncrementId;
+
   int totalShots = 0;
   late int madeShots = 0;
   late int missedShots = 0;
   double shotPercentage = 0;
   //List<int> shots = [];
   late DateTime startTime;
-  late Duration duration;
+  //late Duration duration;
+  late double duration = 0.0;
   late double rating = 0.0;
 
   Session() {
@@ -44,9 +51,12 @@ class Session {
   void endSession(User user) {
     // End time
     DateTime endTime = DateTime.now();
+    Duration diff;
 
     // Get duration
-    duration = startTime.difference(endTime);
+    //duration = startTime.difference(endTime);
+    diff = startTime.difference(endTime);
+    duration = diff.inSeconds / 60.0;
 
     // Update user data
     user.madeShots += madeShots;
@@ -75,7 +85,7 @@ class Session {
   }
 
   // Return duration (End session first) (Should we guard this even though we're the ones writing the code)
-  Duration get getSessionDuration {
+  double get getSessionDuration {
     return duration;
   }
 

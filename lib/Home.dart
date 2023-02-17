@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart';
 import 'User.dart';
-import 'Session.dart';
+import 'session.dart';
 import 'ConnectDevice.dart';
 
 class Home extends StatefulWidget {

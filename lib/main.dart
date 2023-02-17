@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'package:smart_shot/isar_service.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'Session.dart';
+import 'session.dart';
 import 'Home.dart';
 import 'SessionPage.dart';
 import 'CameraSession.dart';
@@ -50,6 +51,9 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
+  //add isar service
+  final service = IsarService();
+
   static final User user = User('Greg');
   // Indices and corresponding widget/screen for the bottom nav bar
   int currentIndex = 0;

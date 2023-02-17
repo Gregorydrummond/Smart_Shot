@@ -1,4 +1,4 @@
-import "Session.dart";
+import "session.dart";
 
 class User {
   List<Session> sessions = [];
