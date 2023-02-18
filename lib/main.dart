@@ -78,9 +78,6 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-
-    // If device has been connected before, reconnect automatically
-    if (ConnectDevice.connectedBefore) {}
   }
 
   @override

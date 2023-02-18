@@ -10,7 +10,6 @@ class ConnectDevice extends StatefulWidget {
   static bool _foundDeviceWaitingToConnect = false;
   static bool _scanStarted = false;
   static bool _connected = false;
-  static bool _connectedBefore = false;
 
   // Bluetooth
   static late DiscoveredDevice smartShotDevice;
@@ -27,10 +26,6 @@ class ConnectDevice extends StatefulWidget {
 
   @override
   State<ConnectDevice> createState() => _ConnectDeviceState();
-
-  static bool get connectedBefore {
-    return ConnectDevice._connectedBefore;
-  }
 }
 
 class _ConnectDeviceState extends State<ConnectDevice> {
@@ -126,7 +121,6 @@ class _ConnectDeviceState extends State<ConnectDevice> {
             setState(() {
               ConnectDevice._foundDeviceWaitingToConnect = false;
               ConnectDevice._connected = true;
-              ConnectDevice._connectedBefore = true;
               widget.onConnection();
             });
 
