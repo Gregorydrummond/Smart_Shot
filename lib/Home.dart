@@ -1,6 +1,8 @@
 import 'dart:collection';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:smart_shot/isar_service.dart';
 import 'package:intl/intl.dart';
 import 'User.dart';
 import 'session.dart';
@@ -15,10 +17,12 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  final service = IsarService();
+
   @override
   void initState() {
     super.initState();
-
+  
     // Insert load data logic
     // Create fake data
     //createSessions();
@@ -27,7 +31,13 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+     FutureBuilder <List<Session>>(
+     future: service.getAllSessions(),
+      builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+        if (snapshot.hasData) {
+          print(snapshot.data);
+          return  Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.orangeAccent,
         title: const Text(
@@ -67,14 +77,58 @@ class _HomeState extends State<Home> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            UserCard(widget.user),
-            WeeklyRecapGraph(widget.user),
-            OverviewRecapGraph(widget.user),
-            LastSession(widget.user),
+            UserCard(widget.user, snapshot.data!),
+            WeeklyRecapGraph(snapshot.data!),
+            OverviewRecapGraph(widget.user, snapshot.data!),
+            LastSession(snapshot.data!),
           ],
         ),
       ),
     );
+        } else {
+                    return  Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.orangeAccent,
+        title: const Text(
+          'Home',
+        ),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.orangeAccent,
+              ),
+              child: Text(
+                'SmartShot Menu',
+                style: TextStyle(
+                  fontSize: 40,
+                ),
+              ),
+            ),
+            ListTile(
+              title: const Text(
+                'Connect Device',
+              ),
+              onTap: () {
+                // Close navigation drawer
+                Navigator.pop(context);
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => ConnectDevice(),
+                ));
+              },
+            ),
+          ],
+        ),
+      ),
+      body: CircularProgressIndicator()
+    );
+        }
+      }
+      );
+    
   }
 
   // void createSessions() {
@@ -123,15 +177,7 @@ class _HomeState extends State<Home> {
   // }
 }
 
-// User card
-class UserCard extends StatefulWidget {
-  late User user;
 
-  UserCard(this.user);
-
-  @override
-  State<UserCard> createState() => _UserCardState();
-}
 
 // Orange data and label box data
 Widget dataAndLabelBox(double data, String label) => Container(
@@ -175,9 +221,21 @@ Widget dataAndLabelBox(double data, String label) => Container(
       ),
     );
 
+// User card
+class UserCard extends StatefulWidget {
+  late User user;
+  late List<Session> sessions;
+  UserCard(this.user, this.sessions);
+  
+  @override
+  State<UserCard> createState() => _UserCardState();
+}
+
 class _UserCardState extends State<UserCard> {
   @override
   void initState() {
+  widget.user.sessions = widget.sessions;
+  widget.user.calculateStats();
     super.initState();
   }
 
@@ -221,7 +279,8 @@ class _UserCardState extends State<UserCard> {
                 Row(
                   children: [
                     Expanded(
-                      child: dataAndLabelBox(widget.user.userRating, 'RATING'),
+                      child: dataAndLabelBox(widget.user.getRating, 'RATING'),
+                  
                     ),
                     Expanded(
                       child: dataAndLabelBox(widget.user.userTime, 'TIME'),
@@ -239,9 +298,9 @@ class _UserCardState extends State<UserCard> {
 
 // Graphs (Bar) for weekly recap
 class WeeklyRecapGraph extends StatefulWidget {
-  late User user;
-
-  WeeklyRecapGraph(this.user);
+  
+  late List<Session> sessions;
+  WeeklyRecapGraph(this.sessions);
 
   @override
   State<WeeklyRecapGraph> createState() => _WeeklyRecapGraphState();
@@ -254,8 +313,9 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
   @override
   void initState() {
     // Get data
-    chartData = getChartData(widget.user.sessions);
+    chartData = getChartData(widget.sessions);
     
+
     super.initState();
   }
 
@@ -272,8 +332,8 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
     // Create Session data objects that have the days and the ratings
     for (var session in weeklySession) {
       DateTime date = session.startTime;
-      String day = DateFormat('EEEE').format(date); // Gets the day name
-      chartData.add(SessionData(day, session.rating));
+      String day = DateFormat('jm').format(date); // Gets the day name
+      chartData.add(SessionData(day, session.madeShots));
     }
 
     return chartData;
@@ -310,7 +370,7 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
 
 class SessionData {
   String day = "";
-  double rating;
+  int rating;
 
   SessionData(this.day, this.rating);
 }
@@ -318,26 +378,30 @@ class SessionData {
 // Graph (Circular) for quick overview
 class OverviewRecapGraph extends StatefulWidget {
   late User user;
-
-  OverviewRecapGraph(this.user);
+  late List<Session> sessions;
+  OverviewRecapGraph(this.user, this.sessions);
 
   @override
   State<OverviewRecapGraph> createState() => _OverviewRecapGraphState();
 }
 
 class _OverviewRecapGraphState extends State<OverviewRecapGraph> {
-  late int madeShots;
-  late int missedShots;
-  late double shotPercentage;
+  int madeShots = 0;
+  int missedShots = 0;
+  double shotPercentage = 0;
+  
   List<UserData> chartData = [];
 
   @override
   void initState() {
+    widget.user.sessions = widget.sessions;
+     widget.user.calculateStats();
     // Get data
+    shotPercentage = widget.user.getShootingPercentage;
     madeShots = widget.user.madeShots;
     missedShots = widget.user.missedShots;
-    shotPercentage = widget.user.getShootingPercentage;
-
+    
+    
     // Make chart data
     getChartData();
 
@@ -422,9 +486,9 @@ class UserData {
 }
 
 class LastSession extends StatefulWidget {
-  late User user;
 
-  LastSession(this.user);
+  late List<Session> sessions;
+  LastSession(this.sessions);
 
   @override
   State<LastSession> createState() => _LastSessionState();
@@ -436,8 +500,8 @@ class _LastSessionState extends State<LastSession> {
   @override
   void initState() {
     // Get data
-    if (widget.user.sessions.isNotEmpty) {
-      lastSession = widget.user.sessions.last;
+    if (widget.sessions.isNotEmpty) {
+      lastSession = widget.sessions.last;
     }
 
     super.initState();

@@ -151,8 +151,13 @@ class _SessionPageState extends State<SessionPage> {
             session.shotTaken(ShotType.miss);
             break;
           case 1:
-            print("Shot made");
-            session.shotTaken(ShotType.make);
+            print("Swish made");
+            session.shotTaken(ShotType.swish);
+            break;
+
+            case 2:
+            print("Bank made");
+            session.shotTaken(ShotType.bank);
             break;
           default:
         }

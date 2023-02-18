@@ -4,21 +4,23 @@ import 'package:isar/isar.dart';
 
 part 'session.g.dart';
 
-enum ShotType { make, miss }
+enum ShotType { swish, bank, miss }
 
 @Collection()
 class Session {
   Id id = isarAutoIncrementId;
 
   int totalShots = 0;
-  late int madeShots = 0;
-  late int missedShots = 0;
+   int madeShots = 0;
+   int bankShots = 0;
+   int swishShots = 0;
+   int missedShots = 0;
   double shotPercentage = 0;
   //List<int> shots = [];
   late DateTime startTime;
   //late Duration duration;
-  late double duration = 0.0;
-  late double rating = 0.0;
+   double duration = 0.0;
+   double rating = 0.0;
 
   Session() {
     // Session start time
@@ -29,7 +31,12 @@ class Session {
   void shotTaken(ShotType shotType) {
     // Make or miss
     switch (shotType) {
-      case ShotType.make:
+      case ShotType.swish:
+        madeShots++;
+        swishShots++;
+        break;
+        case ShotType.bank:
+        bankShots++;
         madeShots++;
         break;
       case ShotType.miss:
@@ -42,7 +49,7 @@ class Session {
     totalShots++;
 
     // Update shot percentage
-    shotPercentage = (madeShots / totalShots.toDouble()) * 100;
+    shotPercentage = double.parse((madeShots / totalShots.toDouble()).toStringAsFixed(2));
   }
 
   // Start session
@@ -62,6 +69,10 @@ class Session {
     user.madeShots += madeShots;
     user.missedShots += missedShots;
     user.totalShots += totalShots;
+    user.bankShots += bankShots;
+    user.swishShots += swishShots;
+
+    rating = (( bankShots + swishShots )*1.5) / totalShots;
   }
 
   // Return total shots
