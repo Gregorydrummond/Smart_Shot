@@ -97,8 +97,8 @@ class _SessionPageState extends State<SessionPage> {
                       "${session.getTotalMisses}", "Shots missed"),
                 ),
                 Expanded(
-                  child:
-                      _buildDataBox("${session.getShotPercentage}%", "Shot %"),
+                  child: _buildDataBox(
+                      "${session.getShotPercentage * 100}%", "Shot %"),
                 ),
               ],
             ),
@@ -155,7 +155,7 @@ class _SessionPageState extends State<SessionPage> {
             session.shotTaken(ShotType.swish);
             break;
 
-            case 2:
+          case 2:
             print("Bank made");
             session.shotTaken(ShotType.bank);
             break;
