@@ -29,10 +29,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  camera:
+  camera: ^0.10.0
   path_provider:
   path:
-  syncfusion_flutter_charts: ^20.3.58
+  syncfusion_flutter_charts: ^20.4.44
+
+  # Add isar, isar_flutter_libs to dependencies
+  isar: ^3.0.0-dev.8
+  isar_flutter_libs: 3.0.0-dev.8 # contains Isar Core
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -44,6 +48,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  #Add isar_generator and build_runner to the dependencies
+  isar_generator: 3.0.0-dev.8
+  build_runner: ^2.1.11
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

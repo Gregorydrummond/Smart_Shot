@@ -1,107 +1,181 @@
 package com.smartshot.smart_shot
 
+import android.os.Environment
 import androidx.annotation.NonNull
+import com.signify.hue.flutterreactiveble.utils.discard
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import org.opencv.android.OpenCVLoader
-import org.opencv.core.Mat
-import org.opencv.core.MatOfRect
-import org.opencv.core.Scalar
-import org.opencv.core.Size
-import org.opencv.imgcodecs.Imgcodecs.imread
+import org.opencv.core.*
+import org.opencv.core.Core.*
 import org.opencv.imgcodecs.Imgcodecs.imwrite
 import org.opencv.imgproc.Imgproc.*
 import org.opencv.objdetect.CascadeClassifier
 import org.opencv.objdetect.Objdetect.CASCADE_SCALE_IMAGE
-import java.io.File
-import java.io.FileOutputStream
 
 
 class MainActivity: FlutterActivity() {
   private val _channel = "smartshot/opencv";
   private var _opencvLoaded = false;
-  private lateinit var haarFace: CascadeClassifier;
+  private var calculateBackground = true;
+  private var shotIsLive = false;
+  private var backgroundFrames = 0;
+  private var missingFrames = 0;
+  private lateinit var background: Mat;
+  private lateinit var summedImage: Mat;
+  private var differenceFrames = ArrayList<Mat>();
+
+  private val dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
 
   override fun onFlutterUiDisplayed() {
     super.onFlutterUiDisplayed()
     if (!_opencvLoaded && OpenCVLoader.initDebug()) {
-//      val haarUri: Uri = Uri.parse("android.resource://com.shartshot.smart_shot/" + R.drawable.haarcascade_frontalface_alt2);
-//      haarFacePath = haarUri.path.toString();
-      val `is` = resources.openRawResource(R.raw.haarcascade_frontalface_alt2);
-      val cascadeDir = getDir("cascade", MODE_PRIVATE);
-      val caseFile = File(cascadeDir, "haarcascade_frontalface_alt2.xml");
-
-      val fos: FileOutputStream = FileOutputStream(caseFile);
-
-      val buffer = ByteArray(4096);
-      var bytesRead: Int;
-
-      while (`is`.read(buffer).also { bytesRead = it } != -1) {
-        fos.write(buffer, 0, bytesRead);
-      }
-      `is`.close();
-      fos.close();
-
-      haarFace = CascadeClassifier(caseFile.absolutePath);
-
-      if(!haarFace.empty()){
-        cascadeDir.delete();
-        _opencvLoaded = true;
-      }
+      _opencvLoaded = true;
     }
   }
 
   override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
-      MethodChannel(flutterEngine.dartExecutor.binaryMessenger, _channel).setMethodCallHandler { call, result ->
+    MethodChannel(flutterEngine.dartExecutor.binaryMessenger, _channel).setMethodCallHandler { call, result ->
       // This method is invoked on the main thread.
       if (call.method == "processImage") {
         if (_opencvLoaded) {
-          if (call.hasArgument("path")) {
-            val path = call.argument<String>("path");
-            var image: Mat = imread(path);
-            if (!image.empty()) {
-              val rects = detectFace(image, haarFace);
-              drawRectangles(image, rects);
-              imwrite(path, image);
-              image.release();
-              result.success("Success");
+          if (call.hasArgument("width") && call.hasArgument("height") && call.hasArgument("bytes")) {
+            val width = call.argument<Int>("width")!!;
+            val height = call.argument<Int>("height")!!;
+            val bytes = call.argument<ByteArray>("bytes");
+            var image: Mat = Mat(height, width, CvType.CV_8UC1);
+            image.put(0,0, bytes);
+
+            rotate(image, image, ROTATE_90_CLOCKWISE);
+            GaussianBlur(image, image, Size(7.0, 7.0), 0.0);
+
+            // Calculate the background reference
+            var returned = false;
+            if (calculateBackground) { //&& backgroundFrames < 1) {
+              background = image;
+              calculateBackground = false;
+              val value = IntArray(1);
+              value[0] = 1;
+              result.success(value);
+              returned = true;
             }
-            else {
-              result.error("IMAGE ERROR", "Was not able to load image", null);
+
+            // Try to detect moving ball
+            if (!returned) {
+              absdiff(background, image, image);
+              threshold(image, image, 50.0, 255.0, THRESH_BINARY);
+              val kernel = getStructuringElement(MORPH_RECT, Size(3.0, 3.0))
+              dilate(image, image, kernel);
+
+              if (differenceFrames.size == 0) {
+                differenceFrames.add(image);
+                summedImage = image;
+                val value = IntArray(1);
+                value[0] = 3;
+                result.success(value);
+                returned = true;
+              }
+              else if (differenceFrames.size != 4) {
+                differenceFrames.add(image);
+                add(image, summedImage, summedImage);
+                val value = IntArray(1);
+                value[0] = 3;
+                result.success(value);
+                returned = true;
+              }
+              else {
+                differenceFrames.removeFirst();
+                differenceFrames.add(image);
+                for (i in 0 until  differenceFrames.size) {
+                  if (i == 0) {
+                    summedImage = differenceFrames[i];
+                    continue;
+                  }
+                  add(summedImage, differenceFrames[i], summedImage);
+                }
+              }
+
+              if (!returned) {
+                // Find the contours
+                var contours: List<MatOfPoint> = ArrayList<MatOfPoint>();
+                var hierarchy = Mat();
+                findContours(summedImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+                var ballDetected = false;
+                var rect = Rect();
+
+                // find the contour for the ball
+                for (contour in contours) {
+                  val bbox = boundingRect(contour);
+                  val ratio = (bbox.width * bbox.height) / (summedImage.width() * summedImage.height() + 0.0)
+
+                  // too big, too small, not square enough
+                  if (ratio < 0.01 || ratio > 0.25 || bbox.width / (bbox.height + 0.0) < 0.8 || bbox.width / (bbox.height + 0.0) > 1.2) {
+                    continue;
+                  }
+
+                  // starts from too low in the screen
+//                  if (!shotIsLive && bbox.y + (bbox.height/2) > summedImage.height() * 0.65) {
+//                    continue;
+//                  }
+
+                  ballDetected = true;
+                  rect = bbox;
+                  bbox.discard()
+                  if (!shotIsLive) {
+                    shotIsLive = true;
+                    missingFrames = 0;
+                  }
+                  break;
+                }
+
+                if (shotIsLive && !ballDetected) {
+                  missingFrames++;
+                  if (missingFrames == 25) {
+                    shotIsLive = false;
+                    missingFrames = 0;
+                  }
+                }
+
+                if (!ballDetected) {
+                  val value = IntArray(1);
+                  value[0] = 4;
+                  result.success(value);
+                }
+                else {
+                  val value = IntArray(7);
+                  value[0] = 2;
+                  value[1] = rect.x;
+                  value[2] = rect.y;
+                  value[3] = rect.width;
+                  value[4] = rect.height;
+                  value[5] = summedImage.width();
+                  value[6] = summedImage.height();
+                  result.success(value);
+                }
+              }
             }
           }
           else {
-            result.error("ARGUMENT ERROR", "Path not provided.", null);
+            result.error("ARGUMENT ERROR", "Invalid arguments provided.", null);
           }
         }
         else {
           result.error("UNAVAILABLE", "Opencv not available.", null);
         }
       }
+      else if (call.method == "endProcessing") {
+        calculateBackground = true;
+        shotIsLive = false;
+        backgroundFrames = 0;
+        missingFrames = 0;
+        result.success(0);
+      }
       else {
         result.notImplemented();
       }
-    }
-  }
-
-  fun detectFace(image: Mat, cascade: CascadeClassifier): MatOfRect {
-    var gray = Mat();
-    cvtColor(image, gray, COLOR_BGR2GRAY);
-    var rectangles = MatOfRect();
-    val minSize = Size(30.0, 30.0);
-    cascade.detectMultiScale(gray, rectangles, 1.1, 5, CASCADE_SCALE_IMAGE, minSize);
-    return rectangles;
-  }
-
-  fun drawRectangles(image: Mat, rects: MatOfRect) {
-    if (rects.empty()) {
-      return;
-    }
-    val color = Scalar(0.0, 255.0, 0.0);
-    for (rect in rects.toList()) {
-      rectangle(image, rect, color, 2);
     }
   }
 }
