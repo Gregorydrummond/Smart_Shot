@@ -60,7 +60,7 @@ class _MainPageState extends State<MainPage> {
         user: user,
       ),
       SessionPage(user: user, cameras: _cameras, end: endSession),
-      CameraSession(cameras: _cameras)
+      Container()
     ];
 
     return screens[currentIndex];
