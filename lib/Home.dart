@@ -279,7 +279,7 @@ class _UserCardState extends State<UserCard> {
                 Row(
                   children: [
                     Expanded(
-                      child: dataAndLabelBox(widget.user.getRating, 'RATING'),
+                      child: dataAndLabelBox(widget.sessions.length.toDouble(), 'SESSIONS'),
                   
                     ),
                     Expanded(

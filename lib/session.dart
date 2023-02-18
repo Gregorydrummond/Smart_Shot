@@ -70,9 +70,9 @@ class Session {
     user.missedShots += missedShots;
     user.totalShots += totalShots;
     user.bankShots += bankShots;
-    user.swishShots += swishShots;
+   // user.swishShots += swishShots;
 
-    rating = (( bankShots + swishShots )*1.5) / totalShots;
+   // rating = (( bankShots + swishShots )*1.5) / totalShots;
   }
 
   // Return total shots
@@ -80,6 +80,9 @@ class Session {
     return totalShots;
   }
 
+int get getSwishShots {
+    return swishShots;
+  }
   // Return total makes
   int get getTotalMakes {
     return madeShots;

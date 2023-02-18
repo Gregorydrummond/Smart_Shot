@@ -20,7 +20,7 @@ class User {
     bankShots   = 0;
     swishShots  = 0; 
      for (int i = 0; i < sessions.length; i++){
-      swishShots += sessions[i].swishShots;
+      swishShots += sessions[i].getSwishShots;
       bankShots += sessions[i].bankShots;
       missedShots +=sessions[i].missedShots;
       madeShots +=sessions[i].madeShots;
@@ -29,7 +29,7 @@ class User {
   }
 
   double get getRating {
-    rating = double.parse(((( bankShots + swishShots * 1.5)) / totalShots.toDouble()).toStringAsFixed(2)) ;
+    //rating = double.parse(((( bankShots + swishShots * 1.5)) / totalShots.toDouble()).toStringAsFixed(2)) ;
     print(swishShots);
     return rating;
   }

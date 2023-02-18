@@ -183,7 +183,6 @@ class _SessionPageState extends State<SessionPage> {
     session.endSession(widget.user);
     service.saveSession(session);
     widget.user.sessions.add(session);
-    print(widget.user.totalShots);
     widget.end();
   }
 
