@@ -26,8 +26,8 @@ Future<void> main() async {
   _cameras = await availableCameras();
   final dir = await getApplicationSupportDirectory();
   final isar = await Isar.open(
-  [SessionSchema],
-  directory: dir.path,
+    [SessionSchema],
+    directory: dir.path,
   );
 
   runApp(const MyApp());
@@ -67,66 +67,62 @@ class _MainPageState extends State<MainPage> {
   static final User user = User('Lebron');
   // Indices and corresponding widget/screen for the bottom nav bar
   int currentIndex = 0;
-  int count =0;
+  int count = 0;
   Widget selectPage() {
-    
     List<Widget> screens = [
       Home(
         user: user,
       ),
-      
+
       //start session page
       SessionPage(user: user, cameras: _cameras, end: endSession),
 
       //session list page
       SingleChildScrollView(
-         child: Column(
+        child: Column(
           children: [
-            TextButton(onPressed: (){
-              Session session = Session();
-              session.shotTaken(ShotType.swish);
-              session.shotTaken(ShotType.miss);
-              session.shotTaken(ShotType.swish);
-              session.shotTaken(ShotType.miss);
-              session.shotTaken(ShotType.bank);
-              session.shotTaken(ShotType.bank);
-              session.endSession(user);
-              service.saveSession(session);
-             
-              }, child: Text('Add Session')),
-              TextButton(onPressed: ()async{
-              List<Session> list = await  service.getAllSessions();
-              setState(() {
-                count = list.length;
-              });
-              }, child : Text('Get Sessions')),
+            // TextButton(onPressed: (){
+            //   Session session = Session();
+            //   session.shotTaken(ShotType.swish);
+            //   session.shotTaken(ShotType.miss);
+            //   session.shotTaken(ShotType.swish);
+            //   session.shotTaken(ShotType.miss);
+            //   session.shotTaken(ShotType.bank);
+            //   session.shotTaken(ShotType.bank);
+            //   session.endSession(user);
+            //   service.saveSession(session);
 
-              Text(count.toString()),
+            //   }, child: Text('Add Session')),
+            //   TextButton(onPressed: ()async{
+            //   List<Session> list = await  service.getAllSessions();
+            //   setState(() {
+            //     count = list.length;
+            //   });
+            //   }, child : Text('Get Sessions')),
 
-               TextButton(onPressed: ()async{
-              await service.cleanDb;
-              setState(() {
-               
-              });
-              }, child : Text('Clean DB')),
+            //   Text(count.toString()),
 
-             FutureBuilder <List<Session>>(
-              future:service.getAllSessions(),
-              builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-               if (snapshot.hasData) {
-                return SingleChildScrollView(
-          child: Column(
-              children:
-                  (snapshot.data!).map((session) => SessionCard(session)).toList()),
-        );
-              } else {
-                return CircularProgressIndicator();
-              }
-            }
-               )
+            //    TextButton(onPressed: ()async{
+            //   await service.cleanDb;
+            //   setState(() {
 
+            //   });
+            //   }, child : Text('Clean DB')),
 
-              
+            FutureBuilder<List<Session>>(
+                future: service.getAllSessions(),
+                builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+                  if (snapshot.hasData) {
+                    return SingleChildScrollView(
+                      child: Column(
+                          children: (snapshot.data!)
+                              .map((session) => SessionCard(session))
+                              .toList()),
+                    );
+                  } else {
+                    return CircularProgressIndicator();
+                  }
+                })
           ],
         ),
       )
@@ -143,17 +139,17 @@ class _MainPageState extends State<MainPage> {
   //             session.shotTaken(ShotType.make);
   //             session.endSession(user);
   //             service.saveSession(Session());
-             
+
   //             }, child: Text('Add Session')),
   //             TextButton(onPressed: ()async{
   //             List<Session> list = await  service.getAllSessions();
-              
+
   //             setState(() {
   //               count = list.length;
   //             });
   //             }, child : Text('Get Sessions')),
 
-  //             Text(count.toString()) 
+  //             Text(count.toString())
   //         ],
   //       ),
 
@@ -199,9 +195,6 @@ class _MainPageState extends State<MainPage> {
   }
 }
 
-
-
-
 class SessionCard extends StatelessWidget {
   final service = IsarService();
   final Session session;
@@ -213,8 +206,7 @@ class SessionCard extends StatelessWidget {
       onTap: () {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => SessionDetails(session)));
-           
-      } ,
+      },
       child: Card(
           elevation: 10,
           color: Colors.orangeAccent,
@@ -285,7 +277,7 @@ class SessionDetails extends StatelessWidget {
       ),
       body: Column(
         children: [
-           const Text(
+          const Text(
             'Last Session',
             style: TextStyle(
               fontSize: 30,
@@ -316,6 +308,7 @@ class SessionDetails extends StatelessWidget {
     );
   }
 }
+
 class ChartData {
   ChartData(this.x, this.y, [this.color]);
   final String x;
