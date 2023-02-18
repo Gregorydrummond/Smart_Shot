@@ -1,13 +1,16 @@
+import 'dart:developer';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_shot/CameraSession.dart';
+import 'package:smart_shot/isar_service.dart';
 import 'dart:io';
 import 'dart:async';
 import 'ConnectDevice.dart';
-import 'Session.dart';
+import 'session.dart';
 import 'User.dart';
 import 'Home.dart';
 
@@ -16,7 +19,11 @@ class SessionPage extends StatefulWidget {
   final List<CameraDescription> cameras;
   Function end;
 
-  SessionPage({super.key, required this.user, required this.cameras, required this.end});
+  SessionPage(
+      {super.key,
+      required this.user,
+      required this.cameras,
+      required this.end});
 
   @override
   State<SessionPage> createState() => _SessionPageState();
@@ -26,6 +33,7 @@ class _SessionPageState extends State<SessionPage> {
   late Session session;
   bool sessionStarted = false;
   GlobalKey camKey = GlobalKey();
+  final service = IsarService();
 
   // Data
   int shot = 0;
@@ -67,67 +75,67 @@ class _SessionPageState extends State<SessionPage> {
 
 // Widget for live data
   Widget liveFeedScreen() => SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                CameraSession(cameras: widget.cameras),
-                Row(
-                  children: [
-                    Expanded(
-                      child:
-                          _buildDataBox("${session.getTotalMakes}", "Shots made"),
-                    ),
-                    Expanded(
-                      child:
-                          _buildDataBox("${session.getTotalShots}", "Total Shots"),
-                    ),
-                  ],
+        child: Column(
+          children: <Widget>[
+            CameraSession(cameras: widget.cameras),
+            Row(
+              children: [
+                Expanded(
+                  child:
+                      _buildDataBox("${session.getTotalMakes}", "Shots made"),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDataBox(
-                          "${session.getTotalMisses}", "Shots missed"),
-                    ),
-                    Expanded(
-                      child:
-                          _buildDataBox("${session.getShotPercentage}%", "Shot %"),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDataBox("0m", "Time"),
-                    ),
-                    Expanded(
-                      child: _buildDataBox("0", "Current Streak"),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        sessionStarted = false;
-                        unsubscribeFromCharacteristic();
-                        endSession();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50),
-                    ),
-                    child: const Text(
-                      'End Session',
-                      style: TextStyle(
-                        fontSize: 45,
-                      ),
-                    ),
-                  ),
+                Expanded(
+                  child:
+                      _buildDataBox("${session.getTotalShots}", "Total Shots"),
                 ),
               ],
             ),
-          );
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDataBox(
+                      "${session.getTotalMisses}", "Shots missed"),
+                ),
+                Expanded(
+                  child:
+                      _buildDataBox("${session.getShotPercentage}%", "Shot %"),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDataBox("0m", "Time"),
+                ),
+                Expanded(
+                  child: _buildDataBox("0", "Current Streak"),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    sessionStarted = false;
+                    unsubscribeFromCharacteristic();
+                    endSession();
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(50),
+                ),
+                child: const Text(
+                  'End Session',
+                  style: TextStyle(
+                    fontSize: 45,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 
   // Listen for the random characteristic
   void _subToCharacteristic() {
@@ -143,8 +151,13 @@ class _SessionPageState extends State<SessionPage> {
             session.shotTaken(ShotType.miss);
             break;
           case 1:
-            print("Shot made");
-            session.shotTaken(ShotType.make);
+            print("Swish made");
+            session.shotTaken(ShotType.swish);
+            break;
+
+            case 2:
+            print("Bank made");
+            session.shotTaken(ShotType.bank);
             break;
           default:
         }
@@ -168,8 +181,8 @@ class _SessionPageState extends State<SessionPage> {
   // End session
   void endSession() {
     session.endSession(widget.user);
+    service.saveSession(session);
     widget.user.sessions.add(session);
-    print(widget.user.totalShots);
     widget.end();
   }
 
