@@ -53,25 +53,9 @@ class MainActivity: FlutterActivity() {
 
             // Calculate the background reference
             var returned = false;
-            if (calculateBackground && backgroundFrames < 1) {
-              if (backgroundFrames == 0) {
-                background = image;
-//                imwrite(dcim.absolutePath + "/background1.png", background);
-              }
-              else {
-                divide(image, Scalar(2.0), image);
-                divide(background, Scalar(2.0), background);
-                add(image, background, background);
-              }
-              backgroundFrames++;
-              val value = IntArray(1);
-              value[0] = 1;
-              result.success(value);
-              returned = true;
-            }
-            else if (calculateBackground && backgroundFrames == 1) {
+            if (calculateBackground) { //&& backgroundFrames < 1) {
+              background = image;
               calculateBackground = false;
-//              imwrite(dcim.absolutePath + "/background.png", background);
               val value = IntArray(1);
               value[0] = 1;
               result.success(value);

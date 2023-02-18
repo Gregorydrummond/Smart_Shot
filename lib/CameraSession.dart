@@ -20,20 +20,18 @@ class _CameraSessionState extends State<CameraSession> {
   GlobalKey camKey = GlobalKey();
 
   late CameraController controller;
+  late Future<void> controllerInit;
   double zoom = 1.0;
-  double maxZoom = 1.0;
-  double minZoom = 1.0;
 
   @override
   void initState() {
     super.initState();
     controller = CameraController(widget.cameras[0], ResolutionPreset.low);
-    controller.initialize().then((_) async {
+    controllerInit = controller.initialize()
+    .then((_) async {
       if (!mounted) {
         return;
       }
-      maxZoom = await controller.getMaxZoomLevel();
-      minZoom = await controller.getMinZoomLevel();
       setState(() {});
     }).catchError((Object e) {
       if (e is CameraException) {
@@ -95,49 +93,73 @@ class _CameraSessionState extends State<CameraSession> {
   }
 
   Widget buildPrompt() {
-    double height = 0;
     try {
-      RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
-      height = renderBox.size.height;
-    }
-    catch (e) {}
-    if (height == 0) {
-      setState(() {});
-    }
-    return 
-    // Center(
-    //   child: 
-      Container(
-        height: height,
-        // padding: EdgeInsets.only(top: height * 0.05),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              children: [
-                const Text("Position camera so that the hoop fills the view", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,)),
-                TextButton(
-                  onPressed: _startTracking,
-                  style: TextButton.styleFrom(backgroundColor: Colors.orangeAccent),
-                  child: const Text("Start Camera Tracking", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+      return FutureBuilder(
+        future: Future.wait([controller.getMaxZoomLevel(), controller.getMinZoomLevel()]),
+        builder: (context, AsyncSnapshot<List<double>> snapshot) {
+          if (snapshot.hasData) {
+            try {
+              double height = 0;
+              RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
+              height = renderBox.size.height;
+              return Container(
+                height: height,
+                padding: EdgeInsets.only(top: height * 0.05),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      children: [
+                        const Text("Position camera so that the hoop fills the view", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white,)),
+                        TextButton(
+                          onPressed: _startTracking,
+                          style: TextButton.styleFrom(backgroundColor: Colors.orangeAccent),
+                          child: const Text("Start Camera Tracking", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),)
+                        ),
+                      ],
+                    ),
+                    Slider(
+                      value: zoom,
+                      max: snapshot.data![0],
+                      min: snapshot.data![1],
+                      onChanged: (double value) {
+                        setState(() {
+                          zoom = value;
+                          controller.setZoomLevel(zoom);
+                        });
+                      }
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            Slider(
-              value: zoom,
-              max: maxZoom,
-              min: minZoom,
-              onChanged: (double value) {
-                setState(() {
-                  zoom = value;
-                  controller.setZoomLevel(zoom);
-                });
-              }
-            ),
-          ],
+              );
+            }
+            catch (e) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [CircularProgressIndicator()]
+                ),
+              );
+            }
+          }
+          else {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [CircularProgressIndicator()]
+              ),
+            );
+          }
+      });
+    }
+    catch (e) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [CircularProgressIndicator()]
         ),
       );
-    // );
+    }
   }
 
   Widget buildBoundingBoxWidget() {
