@@ -53,24 +53,6 @@ void loop() {
 
 
     while(central.connected()) {
-   //   long currentMillis = millis();
-//      if(currentMillis - previousMillis >= 200) {
-//        previousMillis = currentMillis;
-//
-//        int randomValue = analogRead(A1);       // Read from analog pin and write value to randomReading characteristic
-//        randomReading.writeValue(randomValue);
-//        Serial.println(randomValue);
-//
-//        if(switchChar.written()) {    // Query if the characteristic value has been written by another BLE device.
-//          if(switchChar.value()) {    // Any value other than 0
-//            Serial.println("LED on");
-//            digitalWrite(ledPin, HIGH);   // Turn on LED
-//          } else {
-//            Serial.println("LED off");
-//            digitalWrite(ledPin, LOW);    // Turn off LED
-//          }
-//        }
-//      }
 
 int detectVibration = digitalRead(3);
   if(detectVibration == HIGH){
@@ -89,13 +71,9 @@ int detectVibration = digitalRead(3);
       int detectShot = digitalRead(2); 
       vibrationMiss = true;
 
-      if(detectShot == LOW){
-        Serial.println("BASKET MADE: Bank Shot or Rim Shot"); 
-        //send data over BLE
-        int bankShot = 1;       // Read from analog pin and write value to randomReading characteristic
-        shotType.writeValue(bankShot);
+      if(detectShot == LOW && shot == false){
         shot = true;
-        break;
+       // break;
       }
 
       if(currentTime - previousTime >= eventInterval)
@@ -111,17 +89,36 @@ int detectVibration = digitalRead(3);
         shotType.writeValue(miss);
       }                 
   }
-  shot = false;
+  
 
   int detectShot = digitalRead(2); 
-  if(detectShot == LOW){
+  if(detectShot == LOW && !shot){
    Serial.println("BASKET MADE: Swish Shot"); 
    //send data over BLE
    int swish = 2;       // Read from analog pin and write value to randomReading characteristic
    shotType.writeValue(swish);
+   while(detectShot == LOW){
+      int detectShot = digitalRead(2);
+      if(detectShot == HIGH){
+        break;
+      }
+     }
   }
- 
-   delay(300);
+   else if(shot) {
+    Serial.println("BASKET MADE: Bank Shot or Rim Shot"); 
+    //send data over BLE
+    int bankShot = 1;       // Read from analog pin and write value to randomReading characteristic
+    shotType.writeValue(bankShot);
+    while(detectShot == LOW){
+      int detectShot = digitalRead(2);
+      if(detectShot == HIGH){
+        break;
+      }
+     }
+  }
+  
+   shot = false;
+   delay(100);
     }
     
     digitalWrite(LED_BUILTIN, LOW);   // When the central disconnects, turns off the LED
@@ -129,3 +126,5 @@ int detectVibration = digitalRead(3);
     Serial.println(central.address());
   }
 }
+
+
