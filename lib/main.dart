@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'package:smart_shot/ConnectDevice.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:smart_shot/isar_service.dart';
@@ -14,6 +15,7 @@ import 'Home.dart';
 import 'SessionPage.dart';
 import 'CameraSession.dart';
 import 'User.dart';
+import 'ConnectDevice.dart';
 import 'dart:math';
 
 late List<CameraDescription> _cameras;
