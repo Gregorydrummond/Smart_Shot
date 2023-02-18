@@ -22,14 +22,14 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-  
+
     // Insert load data logic
     // Create fake data
     //createSessions();
     //calculateUserRating(player.sessions);
   }
 
-  void showConnectedToast() {
+  showConnectedToast() {
     setState(() {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("SmartShot Device Connected!"),
@@ -39,118 +39,115 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return
-     FutureBuilder <List<Session>>(
-     future: service.getAllSessions(),
-      builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-        if (snapshot.hasData) {
-          print(snapshot.data);
-          return  Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
-        title: const Text(
-          'Home',
-        ),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.bluetooth),
-            tooltip: "Connect to SmartShot device",
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => ConnectDevice(
-                  onConnection: showConnectedToast,
+    return FutureBuilder<List<Session>>(
+        future: service.getAllSessions(),
+        builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+          if (snapshot.hasData) {
+            print(snapshot.data);
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: Colors.orangeAccent,
+                title: const Text(
+                  'Home',
                 ),
-              ));
-            },
-          )
-        ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.orangeAccent,
+                actions: <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.bluetooth),
+                    tooltip: "Connect to SmartShot device",
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ConnectDevice(
+                          onConnection: showConnectedToast,
+                        ),
+                      ));
+                    },
+                  )
+                ],
               ),
-              child: Text(
-                'SmartShot Menu',
-                style: TextStyle(
-                  fontSize: 40,
-                ),
-              ),
-            ),
-            ListTile(
-              title: const Text(
-                'Connect Device',
-              ),
-              onTap: () {
-                // Close navigation drawer
-                // Navigator.pop(context);
-                // Navigator.of(context).push(MaterialPageRoute(
-                //   builder: (context) =>
-                //       ConnectDevice(onConnection: showConnectedToast),
-                // ));
-              },
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            UserCard(widget.user, snapshot.data!),
-            WeeklyRecapGraph(snapshot.data!),
-            OverviewRecapGraph(widget.user, snapshot.data!),
-            LastSession(snapshot.data!),
-          ],
-        ),
-      ),
-    );
-        } else {
-                    return  Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
-        title: const Text(
-          'Home',
-        ),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.orangeAccent,
-              ),
-              child: Text(
-                'SmartShot Menu',
-                style: TextStyle(
-                  fontSize: 40,
+              drawer: Drawer(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    const DrawerHeader(
+                      decoration: BoxDecoration(
+                        color: Colors.orangeAccent,
+                      ),
+                      child: Text(
+                        'SmartShot Menu',
+                        style: TextStyle(
+                          fontSize: 40,
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      title: const Text(
+                        'Connect Device',
+                      ),
+                      onTap: () {
+                        // Close navigation drawer
+                        // Navigator.pop(context);
+                        // Navigator.of(context).push(MaterialPageRoute(
+                        //   builder: (context) =>
+                        //       ConnectDevice(onConnection: showConnectedToast),
+                        // ));
+                      },
+                    ),
+                  ],
                 ),
               ),
-            ),
-            ListTile(
-              title: const Text(
-                'Connect Device',
+              body: SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    UserCard(widget.user, snapshot.data!),
+                    WeeklyRecapGraph(snapshot.data!),
+                    OverviewRecapGraph(widget.user, snapshot.data!),
+                    LastSession(snapshot.data!),
+                  ],
+                ),
               ),
-              onTap: () {
-                // Close navigation drawer
-                Navigator.pop(context);
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => ConnectDevice(),
-                ));
-              },
-            ),
-          ],
-        ),
-      ),
-      body: CircularProgressIndicator()
-    );
-        }
-      }
-      );
-    
+            );
+          } else {
+            return Scaffold(
+                appBar: AppBar(
+                  backgroundColor: Colors.orangeAccent,
+                  title: const Text(
+                    'Home',
+                  ),
+                ),
+                drawer: Drawer(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      const DrawerHeader(
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent,
+                        ),
+                        child: Text(
+                          'SmartShot Menu',
+                          style: TextStyle(
+                            fontSize: 40,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        title: const Text(
+                          'Connect Device',
+                        ),
+                        onTap: () {
+                          // Close navigation drawer
+                          Navigator.pop(context);
+                          Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => ConnectDevice(
+                                onConnection: showConnectedToast()),
+                          ));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                body: CircularProgressIndicator());
+          }
+        });
   }
 
   // void createSessions() {
@@ -199,8 +196,6 @@ class _HomeState extends State<Home> {
   // }
 }
 
-
-
 // Orange data and label box data
 Widget dataAndLabelBox(double data, String label) => Container(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
@@ -248,7 +243,7 @@ class UserCard extends StatefulWidget {
   late User user;
   late List<Session> sessions;
   UserCard(this.user, this.sessions);
-  
+
   @override
   State<UserCard> createState() => _UserCardState();
 }
@@ -256,8 +251,8 @@ class UserCard extends StatefulWidget {
 class _UserCardState extends State<UserCard> {
   @override
   void initState() {
-  widget.user.sessions = widget.sessions;
-  widget.user.calculateStats();
+    widget.user.sessions = widget.sessions;
+    widget.user.calculateStats();
     super.initState();
   }
 
@@ -301,8 +296,8 @@ class _UserCardState extends State<UserCard> {
                 Row(
                   children: [
                     Expanded(
-                      child: dataAndLabelBox(widget.sessions.length.toDouble(), 'SESSIONS'),
-                  
+                      child: dataAndLabelBox(
+                          widget.sessions.length.toDouble(), 'SESSIONS'),
                     ),
                     Expanded(
                       child: dataAndLabelBox(widget.user.userTime, 'TIME'),
@@ -320,7 +315,6 @@ class _UserCardState extends State<UserCard> {
 
 // Graphs (Bar) for weekly recap
 class WeeklyRecapGraph extends StatefulWidget {
-  
   late List<Session> sessions;
   WeeklyRecapGraph(this.sessions);
 
@@ -336,7 +330,6 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
   void initState() {
     // Get data
     chartData = getChartData(widget.sessions);
-    
 
     super.initState();
   }
@@ -411,19 +404,18 @@ class _OverviewRecapGraphState extends State<OverviewRecapGraph> {
   int madeShots = 0;
   int missedShots = 0;
   double shotPercentage = 0;
-  
+
   List<UserData> chartData = [];
 
   @override
   void initState() {
     widget.user.sessions = widget.sessions;
-     widget.user.calculateStats();
+    widget.user.calculateStats();
     // Get data
     shotPercentage = widget.user.getShootingPercentage;
     madeShots = widget.user.madeShots;
     missedShots = widget.user.missedShots;
-    
-    
+
     // Make chart data
     getChartData();
 
@@ -508,7 +500,6 @@ class UserData {
 }
 
 class LastSession extends StatefulWidget {
-
   late List<Session> sessions;
   LastSession(this.sessions);
 
