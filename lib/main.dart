@@ -26,8 +26,8 @@ Future<void> main() async {
   _cameras = await availableCameras();
   final dir = await getApplicationSupportDirectory();
   final isar = await Isar.open(
-  [SessionSchema],
-  directory: dir.path,
+    [SessionSchema],
+    directory: dir.path,
   );
 
   runApp(const MyApp());
@@ -70,7 +70,7 @@ class _MainPageState extends State<MainPage> {
   Widget selectPage() {
     List<Widget> screens = [
       Home(user: user),
-      
+
       //start session page
       SessionPage(user: user, cameras: _cameras, end: endSession),
 
@@ -81,62 +81,61 @@ class _MainPageState extends State<MainPage> {
           backgroundColor: Colors.orangeAccent,
         ),
         body: SingleChildScrollView(
-           child: Column(
+          child: Column(
             children: [
-              // TextButton(onPressed: () async {
-              //     Session session = Session();
-              //     session.shotTaken(ShotType.swish);
-              //     session.shotTaken(ShotType.miss);
-              //     session.shotTaken(ShotType.swish);
-              //     session.shotTaken(ShotType.miss);
-              //     session.shotTaken(ShotType.bank);
-              //     session.shotTaken(ShotType.bank);
-              //     session.endSession(user);
-              //     service.saveSession(session);
-      
-              //     List<Session> list = await service.getAllSessions();
-              //     setState(() {
-              //       count = list.length;
-              //     });
-              //   },
-              //   child: Text('Add Session')
-              // ),
-              // Text(count.toString()),
-              // TextButton(onPressed: () async {
-              //     await service.cleanDb();
-              //     setState(() {
-              //       count = 0;
-              //     });
-              //   },
-              //   child: Text('Clean DB')
-              // ),
-      
-              FutureBuilder <List<Session>>(
-                future:service.getAllSessions(),
-                builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-                  if (snapshot.hasData) {
-                    if (snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Container(
-                          margin: EdgeInsets.only(top: 12.0),
-                          child: const Text('There are no sessions',
-                            style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold, color: Colors.black)
-                          )
-                        )
-                      );
+              TextButton(
+                  onPressed: () async {
+                    Session session = Session();
+                    session.shotTaken(ShotType.swish);
+                    session.shotTaken(ShotType.miss);
+                    session.shotTaken(ShotType.swish);
+                    session.shotTaken(ShotType.miss);
+                    session.shotTaken(ShotType.bank);
+                    session.shotTaken(ShotType.bank);
+                    session.endSession(user);
+                    session.duration = 10.0;
+                    service.saveSession(session);
+
+                    List<Session> list = await service.getAllSessions();
+                    setState(() {
+                      count = list.length;
+                    });
+                  },
+                  child: Text('Add Session')),
+              Text(count.toString()),
+              TextButton(
+                  onPressed: () async {
+                    await service.cleanDb();
+                    setState(() {
+                      count = 0;
+                    });
+                  },
+                  child: Text('Clean DB')),
+              FutureBuilder<List<Session>>(
+                  future: service.getAllSessions(),
+                  builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+                    if (snapshot.hasData) {
+                      if (snapshot.data!.isEmpty) {
+                        return Center(
+                            child: Container(
+                                margin: EdgeInsets.only(top: 12.0),
+                                child: const Text('There are no sessions',
+                                    style: TextStyle(
+                                        fontSize: 15.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black))));
+                      } else {
+                        return SingleChildScrollView(
+                          child: Column(
+                              children: (snapshot.data!)
+                                  .map((session) => SessionCard(session))
+                                  .toList()),
+                        );
+                      }
+                    } else {
+                      return CircularProgressIndicator();
                     }
-                    else {
-                      return SingleChildScrollView(
-                        child: Column(
-                        children: (snapshot.data!).map((session) => SessionCard(session)).toList()),
-                      );
-                    }
-                  } 
-                  else {
-                    return CircularProgressIndicator();
-                  }
-                }
-              )
+                  })
             ],
           ),
         ),
@@ -188,9 +187,6 @@ class _MainPageState extends State<MainPage> {
   }
 }
 
-
-
-
 class SessionCard extends StatelessWidget {
   final service = IsarService();
   final Session session;
@@ -202,8 +198,7 @@ class SessionCard extends StatelessWidget {
       onTap: () {
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => SessionDetails(session)));
-           
-      } ,
+      },
       child: Card(
           elevation: 10,
           color: Colors.orangeAccent,
@@ -268,7 +263,7 @@ class SessionDetails extends StatelessWidget {
       ),
       body: Column(
         children: [
-           const Text(
+          const Text(
             'Last Session',
             style: TextStyle(
               fontSize: 30,
@@ -277,7 +272,8 @@ class SessionDetails extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(session.getShotPercentage * 100, "Shot %"),
+                child:
+                    dataAndLabelBox(session.getShotPercentage * 100, "Shot %"),
               ),
               Expanded(
                 child: dataAndLabelBox(session.getSessionDuration, "Time"),
@@ -287,10 +283,12 @@ class SessionDetails extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(session.getSwishShots.toDouble(), "Swishes"),
+                child: dataAndLabelBox(
+                    session.getSwishShots.toDouble(), "Swishes"),
               ),
               Expanded(
-                child: dataAndLabelBox(session.getTotalMisses.toDouble(), "Misses"),
+                child: dataAndLabelBox(
+                    session.getTotalMisses.toDouble(), "Misses"),
               ),
             ],
           ),
@@ -299,6 +297,7 @@ class SessionDetails extends StatelessWidget {
     );
   }
 }
+
 class ChartData {
   ChartData(this.x, this.y, [this.color]);
   final String x;

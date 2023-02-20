@@ -18,7 +18,7 @@ class Session {
   double shotPercentage = 0;
   late DateTime startTime;
   double duration = 0.0;
-  double rating = 0.0;  
+  double rating = 0.0;
 
   Session() {
     // Session start time
@@ -33,7 +33,7 @@ class Session {
         madeShots++;
         swishShots++;
         break;
-        case ShotType.bank:
+      case ShotType.bank:
         bankShots++;
         madeShots++;
         break;
@@ -47,7 +47,8 @@ class Session {
     totalShots++;
 
     // Update shot percentage
-    shotPercentage = double.parse((madeShots / totalShots.toDouble()).toStringAsFixed(2));
+    shotPercentage =
+        double.parse((madeShots / totalShots.toDouble()).toStringAsFixed(2));
   }
 
   // End session
@@ -58,7 +59,7 @@ class Session {
 
     // Get duration
     //duration = startTime.difference(endTime);
-    diff = startTime.difference(endTime);
+    diff = endTime.difference(startTime);
     duration = diff.inSeconds / 60.0;
 
     // Update user data
@@ -68,7 +69,7 @@ class Session {
     user.bankShots += bankShots;
     user.swishShots += swishShots;
 
-    rating = (( bankShots + swishShots )*1.5) / totalShots;
+    rating = ((bankShots + swishShots) * 1.5) / totalShots;
   }
 
   // Return total shots

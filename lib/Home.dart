@@ -248,7 +248,7 @@ class _UserCardState extends State<UserCard> {
                       child: dataAndLabelBox(widget.user.getRating, 'RATING'),
                     ),
                     Expanded(
-                      child: dataAndLabelBox(widget.user.userTime, 'TIME'),
+                      child: dataAndLabelBox(widget.user.getTime, 'TIME'),
                     ),
                   ],
                 ),
@@ -478,20 +478,24 @@ class _LastSessionState extends State<LastSession> {
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(widget.sessions.last.getShotPercentage * 100, "Shot %"),
+                child: dataAndLabelBox(
+                    widget.sessions.last.getShotPercentage * 100, "Shot %"),
               ),
               Expanded(
-                child: dataAndLabelBox(widget.sessions.last.getSessionDuration, "Time"),
+                child: dataAndLabelBox(
+                    widget.sessions.last.getSessionDuration, "Time"),
               ),
             ],
           ),
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(widget.sessions.last.getSwishShots.toDouble(), "Swishes"),
+                child: dataAndLabelBox(
+                    widget.sessions.last.getSwishShots.toDouble(), "Swishes"),
               ),
               Expanded(
-                child: dataAndLabelBox(widget.sessions.last.getTotalMisses.toDouble(), "Misses"),
+                child: dataAndLabelBox(
+                    widget.sessions.last.getTotalMisses.toDouble(), "Misses"),
               ),
             ],
           ),
