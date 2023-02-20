@@ -11,16 +11,14 @@ class Session {
   Id id = isarAutoIncrementId;
 
   int totalShots = 0;
-   int madeShots = 0;
-   int bankShots = 0;
-   int swishShots = 0;
-   int missedShots = 0;
+  int madeShots = 0;
+  int bankShots = 0;
+  int swishShots = 0;
+  int missedShots = 0;
   double shotPercentage = 0;
-  //List<int> shots = [];
   late DateTime startTime;
-  //late Duration duration;
-   double duration = 0.0;
-   double rating = 0.0;
+  double duration = 0.0;
+  double rating = 0.0;  
 
   Session() {
     // Session start time
@@ -52,8 +50,6 @@ class Session {
     shotPercentage = double.parse((madeShots / totalShots.toDouble()).toStringAsFixed(2));
   }
 
-  // Start session
-
   // End session
   void endSession(User user) {
     // End time
@@ -70,40 +66,48 @@ class Session {
     user.missedShots += missedShots;
     user.totalShots += totalShots;
     user.bankShots += bankShots;
-   // user.swishShots += swishShots;
+    user.swishShots += swishShots;
 
-   // rating = (( bankShots + swishShots )*1.5) / totalShots;
+    rating = (( bankShots + swishShots )*1.5) / totalShots;
   }
 
   // Return total shots
+  @ignore
   int get getTotalShots {
     return totalShots;
   }
 
-int get getSwishShots {
+  @ignore
+  int get getSwishShots {
     return swishShots;
   }
+
   // Return total makes
+  @ignore
   int get getTotalMakes {
     return madeShots;
   }
 
   // Return total misses
+  @ignore
   int get getTotalMisses {
     return missedShots;
   }
 
   // Return shot percentage
+  @ignore
   double get getShotPercentage {
     return shotPercentage;
   }
 
   // Return duration (End session first) (Should we guard this even though we're the ones writing the code)
+  @ignore
   double get getSessionDuration {
     return duration;
   }
 
   // Return rating
+  @ignore
   double get getSessionRating {
     return rating;
   }

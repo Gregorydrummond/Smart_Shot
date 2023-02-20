@@ -43,7 +43,6 @@ class _HomeState extends State<Home> {
         future: service.getAllSessions(),
         builder: (context, AsyncSnapshot<List<Session>> snapshot) {
           if (snapshot.hasData) {
-            print(snapshot.data);
             return Scaffold(
               appBar: AppBar(
                 backgroundColor: Colors.orangeAccent,
@@ -296,8 +295,7 @@ class _UserCardState extends State<UserCard> {
                 Row(
                   children: [
                     Expanded(
-                      child: dataAndLabelBox(
-                          widget.sessions.length.toDouble(), 'SESSIONS'),
+                      child: dataAndLabelBox(widget.user.getRating, 'RATING'),
                     ),
                     Expanded(
                       child: dataAndLabelBox(widget.user.userTime, 'TIME'),
@@ -508,20 +506,23 @@ class LastSession extends StatefulWidget {
 }
 
 class _LastSessionState extends State<LastSession> {
-  late Session lastSession;
+  // late Session lastSession;
 
   @override
   void initState() {
     // Get data
-    if (widget.sessions.isNotEmpty) {
-      lastSession = widget.sessions.last;
-    }
+    // if (widget.sessions.isNotEmpty) {
+      // lastSession = widget.sessions.last;
+    // }
 
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.sessions.isEmpty) {
+      return Container();
+    }
     return SafeArea(
       child: Column(
         children: [
@@ -534,17 +535,17 @@ class _LastSessionState extends State<LastSession> {
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(32, "Shot %"),
+                child: dataAndLabelBox(widget.sessions.last.getShotPercentage * 100, "Shot %"),
               ),
               Expanded(
-                child: dataAndLabelBox(15, "Time"),
+                child: dataAndLabelBox(widget.sessions.last.getSessionDuration, "Time"),
               ),
             ],
           ),
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(17, "Swishes"),
+                child: dataAndLabelBox(widget.sessions.last.getSwishShots.toDouble(), "Swishes"),
               ),
               Expanded(
                 child: dataAndLabelBox(5, "Airballs"),

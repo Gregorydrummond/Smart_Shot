@@ -29,14 +29,11 @@ class User {
   }
 
   double get getRating {
-    //rating = double.parse(((( bankShots + swishShots * 1.5)) / totalShots.toDouble()).toStringAsFixed(2)) ;
-    print(swishShots);
+    rating = double.parse(((( bankShots + swishShots * 1.5)) / totalShots.toDouble()).toStringAsFixed(2)) ;
     return rating;
   }
 
   double get getShootingPercentage {
-
-
     return double.parse((madeShots / totalShots.toDouble()).toStringAsFixed(2)) * 100;
   }
 }
