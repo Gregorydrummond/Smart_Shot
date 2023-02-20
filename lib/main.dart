@@ -61,101 +61,90 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  //add isar service
   final service = IsarService();
-  //final Session sessions = service.getAllSessions();
   static final User user = User('Lebron');
   // Indices and corresponding widget/screen for the bottom nav bar
   int currentIndex = 0;
-  int count =0;
+  int count = 0;
+
   Widget selectPage() {
-    
     List<Widget> screens = [
-      Home(
-        user: user,
-      ),
+      Home(user: user),
       
       //start session page
       SessionPage(user: user, cameras: _cameras, end: endSession),
 
       //session list page
-      SingleChildScrollView(
-         child: Column(
-          children: [
-            TextButton(onPressed: (){
-              Session session = Session();
-              session.shotTaken(ShotType.swish);
-              session.shotTaken(ShotType.miss);
-              session.shotTaken(ShotType.swish);
-              session.shotTaken(ShotType.miss);
-              session.shotTaken(ShotType.bank);
-              session.shotTaken(ShotType.bank);
-              session.endSession(user);
-              service.saveSession(session);
-             
-              }, child: Text('Add Session')),
-              TextButton(onPressed: ()async{
-              List<Session> list = await  service.getAllSessions();
-              setState(() {
-                count = list.length;
-              });
-              }, child : Text('Get Sessions')),
-
-              Text(count.toString()),
-
-               TextButton(onPressed: ()async{
-              await service.cleanDb;
-              setState(() {
-               
-              });
-              }, child : Text('Clean DB')),
-
-             FutureBuilder <List<Session>>(
-              future:service.getAllSessions(),
-              builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-               if (snapshot.hasData) {
-                return SingleChildScrollView(
-          child: Column(
-              children:
-                  (snapshot.data!).map((session) => SessionCard(session)).toList()),
-        );
-              } else {
-                return CircularProgressIndicator();
-              }
-            }
-               )
-
-
-              
-          ],
+      Scaffold(
+        appBar: AppBar(
+          title: const Text('Sessions'),
+          backgroundColor: Colors.orangeAccent,
+        ),
+        body: SingleChildScrollView(
+           child: Column(
+            children: [
+              // TextButton(onPressed: () async {
+              //     Session session = Session();
+              //     session.shotTaken(ShotType.swish);
+              //     session.shotTaken(ShotType.miss);
+              //     session.shotTaken(ShotType.swish);
+              //     session.shotTaken(ShotType.miss);
+              //     session.shotTaken(ShotType.bank);
+              //     session.shotTaken(ShotType.bank);
+              //     session.endSession(user);
+              //     service.saveSession(session);
+      
+              //     List<Session> list = await service.getAllSessions();
+              //     setState(() {
+              //       count = list.length;
+              //     });
+              //   },
+              //   child: Text('Add Session')
+              // ),
+              // Text(count.toString()),
+              // TextButton(onPressed: () async {
+              //     await service.cleanDb();
+              //     setState(() {
+              //       count = 0;
+              //     });
+              //   },
+              //   child: Text('Clean DB')
+              // ),
+      
+              FutureBuilder <List<Session>>(
+                future:service.getAllSessions(),
+                builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+                  if (snapshot.hasData) {
+                    if (snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Container(
+                          margin: EdgeInsets.only(top: 12.0),
+                          child: const Text('There are no sessions',
+                            style: TextStyle(fontSize: 15.0, fontWeight: FontWeight.bold, color: Colors.black)
+                          )
+                        )
+                      );
+                    }
+                    else {
+                      return SingleChildScrollView(
+                        child: Column(
+                        children: (snapshot.data!).map((session) => SessionCard(session)).toList()),
+                      );
+                    }
+                  } 
+                  else {
+                    return CircularProgressIndicator();
+                  }
+                }
+              )
+            ],
+          ),
         ),
       )
     ];
 
     return screens[currentIndex];
   }
-
-  // child: Column(
-  //         children: [
-  //           TextButton(onPressed: (){
-  //             Session session = Session();
-  //             session.shotTaken(ShotType.make);
-  //             session.shotTaken(ShotType.make);
-  //             session.endSession(user);
-  //             service.saveSession(Session());
-             
-  //             }, child: Text('Add Session')),
-  //             TextButton(onPressed: ()async{
-  //             List<Session> list = await  service.getAllSessions();
-              
-  //             setState(() {
-  //               count = list.length;
-  //             });
-  //             }, child : Text('Get Sessions')),
-
-  //             Text(count.toString()) 
-  //         ],
-  //       ),
 
   endSession() {
     setState(() {
@@ -272,12 +261,6 @@ class SessionDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<ChartData> chartData = [
-      ChartData('David', 25),
-      ChartData('Steve', 38),
-      ChartData('Jack', 34),
-      ChartData('Others', 52)
-    ];
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.orangeAccent,
@@ -294,20 +277,20 @@ class SessionDetails extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(session.getShotPercentage, "Shot %"),
+                child: dataAndLabelBox(session.getShotPercentage * 100, "Shot %"),
               ),
               Expanded(
-                child: dataAndLabelBox(15, "Time"),
+                child: dataAndLabelBox(session.getSessionDuration, "Time"),
               ),
             ],
           ),
           Row(
             children: [
               Expanded(
-                child: dataAndLabelBox(17, "Swishes"),
+                child: dataAndLabelBox(session.getSwishShots.toDouble(), "Swishes"),
               ),
               Expanded(
-                child: dataAndLabelBox(5, "Airballs"),
+                child: dataAndLabelBox(session.getTotalMisses.toDouble(), "Misses"),
               ),
             ],
           ),

@@ -14,12 +14,13 @@ class User {
   User(this.name);
 
   void calculateStats(){
-    totalShots  = 0;
+    totalShots = 0;
     missedShots = 0;
-    madeShots   = 0;
-    bankShots   = 0;
-    swishShots  = 0; 
-     for (int i = 0; i < sessions.length; i++){
+    madeShots = 0;
+    bankShots = 0;
+    swishShots = 0;
+
+    for (int i = 0; i < sessions.length; i++){
       swishShots += sessions[i].getSwishShots;
       bankShots += sessions[i].bankShots;
       missedShots +=sessions[i].missedShots;

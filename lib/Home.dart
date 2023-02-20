@@ -22,11 +22,6 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-
-    // Insert load data logic
-    // Create fake data
-    //createSessions();
-    //calculateUserRating(player.sessions);
   }
 
   showConnectedToast() {
@@ -63,37 +58,37 @@ class _HomeState extends State<Home> {
                   )
                 ],
               ),
-              drawer: Drawer(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    const DrawerHeader(
-                      decoration: BoxDecoration(
-                        color: Colors.orangeAccent,
-                      ),
-                      child: Text(
-                        'SmartShot Menu',
-                        style: TextStyle(
-                          fontSize: 40,
-                        ),
-                      ),
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Connect Device',
-                      ),
-                      onTap: () {
-                        // Close navigation drawer
-                        // Navigator.pop(context);
-                        // Navigator.of(context).push(MaterialPageRoute(
-                        //   builder: (context) =>
-                        //       ConnectDevice(onConnection: showConnectedToast),
-                        // ));
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              // drawer: Drawer(
+              //   child: ListView(
+              //     padding: EdgeInsets.zero,
+              //     children: [
+              //       const DrawerHeader(
+              //         decoration: BoxDecoration(
+              //           color: Colors.orangeAccent,
+              //         ),
+              //         child: Text(
+              //           'SmartShot Menu',
+              //           style: TextStyle(
+              //             fontSize: 40,
+              //           ),
+              //         ),
+              //       ),
+              //       ListTile(
+              //         title: const Text(
+              //           'Connect Device',
+              //         ),
+              //         onTap: () {
+              //           // Close navigation drawer
+              //           // Navigator.pop(context);
+              //           // Navigator.of(context).push(MaterialPageRoute(
+              //           //   builder: (context) =>
+              //           //       ConnectDevice(onConnection: showConnectedToast),
+              //           // ));
+              //         },
+              //       ),
+              //     ],
+              //   ),
+              // ),
               body: SingleChildScrollView(
                 child: Column(
                   children: <Widget>[
@@ -148,51 +143,6 @@ class _HomeState extends State<Home> {
           }
         });
   }
-
-  // void createSessions() {
-  //   List<Session> sessions = [
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 0, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 1), 97.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 2), 98.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 0, 1, 1, 1, 0, 2, 1, 0, 0],
-  //         DateTime.utc(2023, 1, 3), 72.0),
-  //     Session(12, 0.25, <int>[0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0],
-  //         DateTime.utc(2023, 1, 4), 33.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 5), 98.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 6), 98.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 7), 98.0),
-  //     Session(12, 0.25, <int>[2, 0, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 8), 95.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 9), 98.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 10), 98.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 11), 98.0),
-  //     Session(12, 0.25, <int>[2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1],
-  //         DateTime.utc(2023, 1, 12), 98.0),
-  //   ];
-  //   player.sessions.addAll(sessions);
-  // }
-
-  // Bring this back, commented out for testing
-  // void calculateUserRating(List<Session> sessions) {
-  //   // Go through each session and get the average rating
-  //   double ratingSum = 0;
-  //   int numOfSession = sessions.length;
-
-  //   for (var session in sessions) {
-  //     ratingSum += session.rating;
-  //   }
-
-  //   double playerRating = ratingSum / numOfSession;
-  //   player.userRating = double.parse(playerRating.toStringAsFixed(1));
-  //   //print(playerRating);
-  // }
 }
 
 // Orange data and label box data
@@ -506,15 +456,8 @@ class LastSession extends StatefulWidget {
 }
 
 class _LastSessionState extends State<LastSession> {
-  // late Session lastSession;
-
   @override
   void initState() {
-    // Get data
-    // if (widget.sessions.isNotEmpty) {
-      // lastSession = widget.sessions.last;
-    // }
-
     super.initState();
   }
 
@@ -548,7 +491,7 @@ class _LastSessionState extends State<LastSession> {
                 child: dataAndLabelBox(widget.sessions.last.getSwishShots.toDouble(), "Swishes"),
               ),
               Expanded(
-                child: dataAndLabelBox(5, "Airballs"),
+                child: dataAndLabelBox(widget.sessions.last.getTotalMisses.toDouble(), "Misses"),
               ),
             ],
           ),
