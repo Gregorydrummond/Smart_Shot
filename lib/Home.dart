@@ -24,10 +24,10 @@ class _HomeState extends State<Home> {
     super.initState();
   }
 
-  showConnectedToast() {
+  showConnectedToast({required String message}) {
     setState(() {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text("SmartShot Device Connected!"),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
       ));
     });
   }
@@ -131,8 +131,8 @@ class _HomeState extends State<Home> {
                           // Close navigation drawer
                           Navigator.pop(context);
                           Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => ConnectDevice(
-                                onConnection: showConnectedToast()),
+                            builder: (context) =>
+                                ConnectDevice(onConnection: showConnectedToast),
                           ));
                         },
                       ),
