@@ -33,6 +33,7 @@ dependencies:
   path_provider:
   path:
   syncfusion_flutter_charts: ^20.4.44
+  table_calendar: ^3.0.9
 
   # Add isar, isar_flutter_libs to dependencies
   isar: ^3.0.0-dev.8
