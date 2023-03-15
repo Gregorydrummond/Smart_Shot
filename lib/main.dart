@@ -69,16 +69,15 @@ class CamTest extends StatefulWidget {
 class _CamTestState extends State<CamTest> {
   int airballs = 0;
   bool notAirball = false;
+  late Timer timer;
 
   void ballDetected() {
     notAirball = false;
-    DateTime start = DateTime.now();
-    while (DateTime.now().difference(start).inMilliseconds < 4000 && !notAirball) {}
-    if (!notAirball) {
+    timer = Timer(Duration(seconds: 4), () {
       setState(() {
         airballs += 1;
       });
-    }
+    });
   }
 
   @override
@@ -87,7 +86,10 @@ class _CamTestState extends State<CamTest> {
       child: Column(
         children: [
           CameraSession(cameras: _cameras, ballDetected: ballDetected),
-          Text("Airballs: $airballs")
+          Text("Airballs: $airballs"),
+          TextButton(onPressed: () {
+            timer.cancel();
+          }, child: const Text('Cancel Timer'))
         ],
       ),
     );

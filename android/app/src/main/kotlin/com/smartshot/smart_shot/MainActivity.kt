@@ -20,11 +20,10 @@ class MainActivity: FlutterActivity() {
   private var _opencvLoaded = false;
   private var calculateBackground = true;
   private var shotIsLive = false;
-  private var backgroundFrames = 0;
+  private var firstFrame = false;
   private var missingFrames = 0;
+  private var waitFrames = 0;
   private lateinit var background: Mat;
-  private lateinit var summedImage: Mat;
-  private var differenceFrames = ArrayList<Mat>();
 
   private val dcim = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
 
@@ -53,7 +52,14 @@ class MainActivity: FlutterActivity() {
 
             // Calculate the background reference
             var returned = false;
-            if (calculateBackground) { //&& backgroundFrames < 1) {
+            if (waitFrames < 60) {
+              waitFrames += 1;
+              val value = IntArray(1);
+              value[0] = 1;
+              result.success(value);
+              returned = true;
+            }
+            else if (calculateBackground) {
               background = image;
               calculateBackground = false;
               val value = IntArray(1);
@@ -64,44 +70,20 @@ class MainActivity: FlutterActivity() {
 
             // Try to detect moving ball
             if (!returned) {
-              absdiff(background, image, image);
-              threshold(image, image, 50.0, 255.0, THRESH_BINARY);
-              val kernel = getStructuringElement(MORPH_RECT, Size(3.0, 3.0))
-              dilate(image, image, kernel);
+              var dif = Mat();
+              absdiff(background, image, dif);
+              addWeighted(background, 0.98, image, 0.02, 0.0, background);
 
-              if (differenceFrames.size == 0) {
-                differenceFrames.add(image);
-                summedImage = image;
-                val value = IntArray(1);
-                value[0] = 3;
-                result.success(value);
-                returned = true;
-              }
-              else if (differenceFrames.size != 4) {
-                differenceFrames.add(image);
-                add(image, summedImage, summedImage);
-                val value = IntArray(1);
-                value[0] = 3;
-                result.success(value);
-                returned = true;
-              }
-              else {
-                differenceFrames.removeFirst();
-                differenceFrames.add(image);
-                for (i in 0 until  differenceFrames.size) {
-                  if (i == 0) {
-                    summedImage = differenceFrames[i];
-                    continue;
-                  }
-                  add(summedImage, differenceFrames[i], summedImage);
-                }
-              }
+              threshold(dif, dif, 30.0, 255.0, THRESH_BINARY);
+              val kernel = getStructuringElement(MORPH_RECT, Size(3.0, 3.0));
+              erode(dif, dif, kernel, Point(-1.0, -1.0), 2);
+              dilate(dif, dif, kernel, Point(-1.0, -1.0), 2);
 
               if (!returned) {
                 // Find the contours
                 var contours: List<MatOfPoint> = ArrayList<MatOfPoint>();
                 var hierarchy = Mat();
-                findContours(summedImage, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+                findContours(dif, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 
                 var ballDetected = false;
                 var rect = Rect();
@@ -109,7 +91,7 @@ class MainActivity: FlutterActivity() {
                 // find the contour for the ball
                 for (contour in contours) {
                   val bbox = boundingRect(contour);
-                  val ratio = (bbox.width * bbox.height) / (summedImage.width() * summedImage.height() + 0.0)
+                  val ratio = (bbox.width * bbox.height) / (dif.width() * dif.height() / 2.0)
 
                   // too big, too small, not square enough
                   if (ratio < 0.01 || ratio > 0.25 || bbox.width / (bbox.height + 0.0) < 0.8 || bbox.width / (bbox.height + 0.0) > 1.2) {
@@ -117,15 +99,17 @@ class MainActivity: FlutterActivity() {
                   }
 
                   // starts from too low in the screen
-//                  if (!shotIsLive && bbox.y + (bbox.height/2) > summedImage.height() * 0.65) {
-//                    continue;
-//                  }
+                  if (!shotIsLive && bbox.y + (bbox.height/2) > dif.height() * 0.5) {
+                    continue;
+                  }
 
                   ballDetected = true;
+                  missingFrames = 0;
                   rect = bbox;
                   bbox.discard()
                   if (!shotIsLive) {
                     shotIsLive = true;
+                    firstFrame = true;
                     missingFrames = 0;
                   }
                   break;
@@ -146,13 +130,19 @@ class MainActivity: FlutterActivity() {
                 }
                 else {
                   val value = IntArray(7);
-                  value[0] = 2;
+                  if (firstFrame) {
+                    value[0] = 3;
+                    firstFrame = false;
+                  }
+                  else {
+                    value[0] = 2;
+                  }
                   value[1] = rect.x;
                   value[2] = rect.y;
                   value[3] = rect.width;
                   value[4] = rect.height;
-                  value[5] = summedImage.width();
-                  value[6] = summedImage.height();
+                  value[5] = dif.width();
+                  value[6] = dif.height();
                   result.success(value);
                 }
               }
@@ -169,7 +159,6 @@ class MainActivity: FlutterActivity() {
       else if (call.method == "endProcessing") {
         calculateBackground = true;
         shotIsLive = false;
-        backgroundFrames = 0;
         missingFrames = 0;
         result.success(0);
       }
