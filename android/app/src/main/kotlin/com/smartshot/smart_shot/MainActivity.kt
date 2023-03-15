@@ -159,7 +159,9 @@ class MainActivity: FlutterActivity() {
       else if (call.method == "endProcessing") {
         calculateBackground = true;
         shotIsLive = false;
+        firstFrame = false;
         missingFrames = 0;
+        waitFrames = 0;
         result.success(0);
       }
       else {
