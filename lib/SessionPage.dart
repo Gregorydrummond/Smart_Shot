@@ -37,6 +37,7 @@ class _SessionPageState extends State<SessionPage> {
 
   // Data
   int shot = 0;
+  bool notAirball = false;
 
   @override
   void initState() {
@@ -77,7 +78,7 @@ class _SessionPageState extends State<SessionPage> {
   Widget liveFeedScreen() => SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            CameraSession(cameras: widget.cameras),
+            CameraSession(cameras: widget.cameras, ballDetected: ballDetected,),
             Row(
               children: [
                 Expanded(
@@ -145,6 +146,9 @@ class _SessionPageState extends State<SessionPage> {
       //print(data);
       setState(() {
         shot = data.isNotEmpty ? data.first : -1;
+        if (shot != -1) {
+          notAirball = true;
+        }
         switch (shot) {
           case 0:
             print("Shot misses");
@@ -167,6 +171,18 @@ class _SessionPageState extends State<SessionPage> {
     });
   }
 
+  // Listen for the airball from the camera
+  void ballDetected() {
+    notAirball = false;
+    DateTime start = DateTime.now();
+    while (DateTime.now().difference(start).inMilliseconds < 4000 && !notAirball) {}
+    if (!notAirball) {
+      setState(() {
+        session.shotTaken(ShotType.miss);
+      });
+    }
+  }
+
   // Unsubscribe from random characteristic
   void unsubscribeFromCharacteristic() {
     ConnectDevice.flutterReactiveBLEPlatform.stopSubscribingToNotifications(
@@ -185,8 +201,6 @@ class _SessionPageState extends State<SessionPage> {
     widget.user.sessions.add(session);
     widget.end();
   }
-
-  // Override dispose function
 
   // Return the start session or the live session screen
   @override

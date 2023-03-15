@@ -6,7 +6,8 @@ import 'dart:async';
 
 class CameraSession extends StatefulWidget {
   final List<CameraDescription> cameras;
-  const CameraSession({super.key, required this.cameras});
+  final Function ballDetected;
+  const CameraSession({super.key, required this.cameras, required this.ballDetected});
 
   @override
   State<CameraSession> createState() => _CameraSessionState();
@@ -57,14 +58,8 @@ class _CameraSessionState extends State<CameraSession> {
 
   Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
     try {
-      if (frame % 1 == 0) {
-        frame = 1;
-        boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
-        setState(() {});
-      }
-      else {
-        frame += 1;
-      }
+      boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
+      setState(() {});
     } on PlatformException catch (e) {
       return;
     }

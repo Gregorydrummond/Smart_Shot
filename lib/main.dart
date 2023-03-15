@@ -61,6 +61,39 @@ class MainPage extends StatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
+class CamTest extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _CamTestState();
+}
+
+class _CamTestState extends State<CamTest> {
+  int airballs = 0;
+  bool notAirball = false;
+
+  void ballDetected() {
+    notAirball = false;
+    DateTime start = DateTime.now();
+    while (DateTime.now().difference(start).inMilliseconds < 4000 && !notAirball) {}
+    if (!notAirball) {
+      setState(() {
+        airballs += 1;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        children: [
+          CameraSession(cameras: _cameras, ballDetected: ballDetected),
+          Text("Airballs: $airballs")
+        ],
+      ),
+    );
+  }
+}
+
 class _MainPageState extends State<MainPage> {
   final service = IsarService();
   static final User user = User('Lebron');
@@ -83,6 +116,7 @@ class _MainPageState extends State<MainPage> {
         sessions: sessions,
         count: count,
       ),
+      CamTest()
     ];
 
     return screens[currentIndex];
@@ -131,6 +165,10 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: "Sessions",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: "Test",
           ),
         ],
         onTap: (index) {
