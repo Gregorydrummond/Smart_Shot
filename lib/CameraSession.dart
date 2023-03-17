@@ -49,11 +49,11 @@ class _CameraSessionState extends State<CameraSession> {
   }
 
   @override
-  void dispose() {
+  Future<void> dispose() async {
+    super.dispose();
     controller.stopImageStream();
     platform.invokeMethod('endPorcessing');
     controller.dispose();
-    super.dispose();
   }
 
   Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
@@ -176,7 +176,7 @@ class _CameraSessionState extends State<CameraSession> {
           height: (boundingBox[4] / boundingBox[6]) * height,
           child: Container(
             decoration: BoxDecoration(border: Border.all(color: const Color.fromARGB(255, 0, 255, 0), width: 2.0)),
-            child: const Text("Ball", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0))),
+            child: const Text("", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0))),
           )
         );
       }
