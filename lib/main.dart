@@ -68,11 +68,9 @@ class CamTest extends StatefulWidget {
 
 class _CamTestState extends State<CamTest> {
   int airballs = 0;
-  bool notAirball = false;
   late Timer timer;
 
   void ballDetected() {
-    notAirball = false;
     timer = Timer(Duration(seconds: 4), () {
       setState(() {
         airballs += 1;

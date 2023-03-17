@@ -37,7 +37,7 @@ class _SessionPageState extends State<SessionPage> {
 
   // Data
   int shot = 0;
-  bool notAirball = false;
+  late Timer timer;
 
   @override
   void initState() {
@@ -147,7 +147,7 @@ class _SessionPageState extends State<SessionPage> {
       setState(() {
         shot = data.isNotEmpty ? data.first : -1;
         if (shot != -1) {
-          notAirball = true;
+          timer.cancel();
         }
         switch (shot) {
           case 0:
@@ -173,14 +173,12 @@ class _SessionPageState extends State<SessionPage> {
 
   // Listen for the airball from the camera
   void ballDetected() {
-    notAirball = false;
-    DateTime start = DateTime.now();
-    while (DateTime.now().difference(start).inMilliseconds < 4000 && !notAirball) {}
-    if (!notAirball) {
+    timer = Timer(Duration(seconds: 5), () {
       setState(() {
-        session.shotTaken(ShotType.miss);
+        print("Airball!!");
+        session.shotTaken(ShotType.airball);
       });
-    }
+    });
   }
 
   // Unsubscribe from random characteristic

@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 
 part 'session.g.dart';
 
-enum ShotType { swish, bank, miss }
+enum ShotType { swish, bank, miss, airball }
 
 @Collection()
 class Session {
@@ -15,6 +15,7 @@ class Session {
   int bankShots = 0;
   int swishShots = 0;
   int missedShots = 0;
+  int airballShots = 0;
   double shotPercentage = 0;
   late DateTime startTime;
   double duration = 0.0;
@@ -39,6 +40,10 @@ class Session {
         break;
       case ShotType.miss:
         missedShots++;
+        break;
+      case ShotType.airball:
+        missedShots++;
+        airballShots++;
         break;
       default:
     }
@@ -81,6 +86,11 @@ class Session {
   @ignore
   int get getSwishShots {
     return swishShots;
+  }
+
+  @ignore
+  int get getAirballShots {
+    return airballShots;
   }
 
   // Return total makes
