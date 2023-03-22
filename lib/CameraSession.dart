@@ -79,6 +79,7 @@ class _CameraSessionState extends State<CameraSession> {
   List<Widget> buildWidgets() {
     List<Widget> widgets = [];
     widgets.add(buildCamera());
+    // widgets.add(buildCameraGuide());
     
     if (boundingBox[0] == 0) {
       widgets.add(buildPrompt());
@@ -100,7 +101,10 @@ class _CameraSessionState extends State<CameraSession> {
               double height = 0;
               RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
               height = renderBox.size.height;
-              return Container(
+              List<Widget> widgets = [];
+              widgets.addAll(buildCameraGuides());
+
+              widgets.add(Container(
                 height: height,
                 padding: EdgeInsets.only(top: height * 0.05),
                 child: Column(
@@ -129,7 +133,8 @@ class _CameraSessionState extends State<CameraSession> {
                     ),
                   ],
                 ),
-              );
+              ));
+              return Stack(children: widgets);
             }
             catch (e) {
               return Center(
@@ -185,6 +190,43 @@ class _CameraSessionState extends State<CameraSession> {
     }
 
     return box;
+  }
+
+  List<Widget> buildCameraGuides() {
+    List<Widget> guide = [Container()];
+    final size = MediaQuery.of(context).size;
+
+    try {
+      RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
+      double height = renderBox.size.height;
+
+      if (height > size.width) {
+        guide = [
+            Positioned(
+              left: 0,
+              top: size.width,
+              width: size.width,
+              height: height - size.width,
+              child: Container(
+                color: Color.fromARGB(145, 0, 0, 0)
+              )
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              width: size.width,
+              height: size.width,
+              child: Container(
+                decoration: BoxDecoration(border: Border.all(color: Color.fromARGB(145, 0, 0, 0), width: size.width*0.2)),
+              )
+            )
+          ];
+      }
+    } catch (e) {
+      print("Probably need a future builder");
+    }
+
+    return guide;
   }
 
   Widget buildCamera() => CameraPreview(controller, key: camKey);
