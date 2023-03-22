@@ -116,7 +116,7 @@ class _MainPageState extends State<MainPage> {
         sessions: sessions,
         count: count,
       ),
-      CamTest()
+      // CamTest()
     ];
 
     return screens[currentIndex];
@@ -165,10 +165,6 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: "Sessions",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: "Test",
           ),
         ],
         onTap: (index) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
-import 'dart:io';
 import 'dart:async';
 
 class CameraSession extends StatefulWidget {
@@ -79,7 +78,6 @@ class _CameraSessionState extends State<CameraSession> {
   List<Widget> buildWidgets() {
     List<Widget> widgets = [];
     widgets.add(buildCamera());
-    // widgets.add(buildCameraGuide());
     
     if (boundingBox[0] == 0) {
       widgets.add(buildPrompt());
