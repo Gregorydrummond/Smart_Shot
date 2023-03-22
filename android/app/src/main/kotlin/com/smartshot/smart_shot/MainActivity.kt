@@ -76,6 +76,7 @@ class MainActivity: FlutterActivity() {
 //              absdiff(background, image, dif);
               max(background, image, max);
               min(background, image, min);
+              divide(max, min, dif)
               addWeighted(background, 0.98, image, 0.02, 0.0, background);
 
 //              threshold(dif, dif, 30.0, 255.0, THRESH_BINARY);
