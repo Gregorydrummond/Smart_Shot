@@ -105,7 +105,7 @@ class MainActivity: FlutterActivity() {
                   }
 
                   // starts from too low in the screen
-                  if (!shotIsLive && bbox.y + (bbox.height/2) > dif.height() * 0.5) {
+                  if (!shotIsLive && bbox.y + (bbox.height/2) > dif.width()) {
                     continue;
                   }
 
