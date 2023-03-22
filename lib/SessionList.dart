@@ -5,6 +5,7 @@ import 'package:smart_shot/isar_service.dart';
 import 'Home.dart';
 import 'session.dart';
 import 'User.dart';
+import 'StatCard.dart';
 
 class SessionList extends StatefulWidget {
   late User user;
@@ -351,33 +352,16 @@ class SessionDetails extends StatelessWidget {
       ),
       body: Column(
         children: [
-          const Text(
-            'Last Session',
-            style: TextStyle(
-              fontSize: 30,
-            ),
-          ),
           Row(
             children: [
-              Expanded(
-                child:
-                    dataAndLabelBox(session.getShotPercentage * 100, "Shot %"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(session.getSessionDuration, "Time"),
-              ),
+              Expanded(child: dataAndLabelBox(session.getShotPercentage * 100, "Shot %")),
+              Expanded(child: dataAndLabelBox(session.getSessionDuration, "Time")),
             ],
           ),
           Row(
             children: [
-              Expanded(
-                child: dataAndLabelBox(
-                    session.getSwishShots.toDouble(), "Swishes"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(
-                    session.getTotalMisses.toDouble(), "Misses"),
-              ),
+              Expanded(child: dataAndLabelBox(session.getSwishShots.toDouble(), "Swishes")),
+              Expanded(child: dataAndLabelBox(session.getTotalMisses.toDouble(), "Misses")),
             ],
           ),
         ],

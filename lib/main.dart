@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
@@ -59,39 +60,6 @@ class MainPage extends StatefulWidget {
 
   @override
   _MainPageState createState() => _MainPageState();
-}
-
-class CamTest extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => _CamTestState();
-}
-
-class _CamTestState extends State<CamTest> {
-  int airballs = 0;
-  late Timer timer;
-
-  void ballDetected() {
-    timer = Timer(Duration(seconds: 4), () {
-      setState(() {
-        airballs += 1;
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        children: [
-          CameraSession(cameras: _cameras, ballDetected: ballDetected),
-          Text("Airballs: $airballs"),
-          TextButton(onPressed: () {
-            timer.cancel();
-          }, child: const Text('Cancel Timer'))
-        ],
-      ),
-    );
-  }
 }
 
 class _MainPageState extends State<MainPage> {

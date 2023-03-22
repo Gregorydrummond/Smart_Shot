@@ -58,37 +58,6 @@ class _HomeState extends State<Home> {
                   )
                 ],
               ),
-              // drawer: Drawer(
-              //   child: ListView(
-              //     padding: EdgeInsets.zero,
-              //     children: [
-              //       const DrawerHeader(
-              //         decoration: BoxDecoration(
-              //           color: Colors.orangeAccent,
-              //         ),
-              //         child: Text(
-              //           'SmartShot Menu',
-              //           style: TextStyle(
-              //             fontSize: 40,
-              //           ),
-              //         ),
-              //       ),
-              //       ListTile(
-              //         title: const Text(
-              //           'Connect Device',
-              //         ),
-              //         onTap: () {
-              //           // Close navigation drawer
-              //           // Navigator.pop(context);
-              //           // Navigator.of(context).push(MaterialPageRoute(
-              //           //   builder: (context) =>
-              //           //       ConnectDevice(onConnection: showConnectedToast),
-              //           // ));
-              //         },
-              //       ),
-              //     ],
-              //   ),
-              // ),
               body: SingleChildScrollView(
                 child: Column(
                   children: <Widget>[
