@@ -116,7 +116,6 @@ class _MainPageState extends State<MainPage> {
         sessions: sessions,
         count: count,
       ),
-      // CamTest()
     ];
 
     return screens[currentIndex];
