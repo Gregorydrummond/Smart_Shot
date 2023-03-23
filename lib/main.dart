@@ -104,14 +104,7 @@ class _MainPageState extends State<MainPage> {
   }
 
   void initSessions() async {
-    sessions = await service.getAllSessions().then((sessions) {
-      setState(() {
-        this.sessions = sessions;
-        count = this.sessions.length;
-      });
-
-      throw Error();
-    });
+    sessions = await service.getAllSessions();
   }
 
   @override

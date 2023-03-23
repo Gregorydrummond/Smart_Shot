@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'package:intl/intl.dart';
+import 'StatCard.dart';
 import 'User.dart';
 import 'session.dart';
 import 'ConnectDevice.dart';
@@ -72,91 +73,31 @@ class _HomeState extends State<Home> {
           } else {
             return Scaffold(
                 appBar: AppBar(
-                  backgroundColor: Colors.orangeAccent,
-                  title: const Text(
-                    'Home',
-                  ),
+                backgroundColor: Colors.orangeAccent,
+                title: const Text(
+                  'Home',
                 ),
-                drawer: Drawer(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      const DrawerHeader(
-                        decoration: BoxDecoration(
-                          color: Colors.orangeAccent,
+                actions: <Widget>[
+                  IconButton(
+                    icon: const Icon(Icons.bluetooth),
+                    tooltip: "Connect to SmartShot device",
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => ConnectDevice(
+                          onConnection: showConnectedToast,
                         ),
-                        child: Text(
-                          'SmartShot Menu',
-                          style: TextStyle(
-                            fontSize: 40,
-                          ),
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text(
-                          'Connect Device',
-                        ),
-                        onTap: () {
-                          // Close navigation drawer
-                          Navigator.pop(context);
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) =>
-                                ConnectDevice(onConnection: showConnectedToast),
-                          ));
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                      ));
+                    },
+                  )
+                ],
+              ),
                 body: CircularProgressIndicator());
           }
         });
   }
 }
 
-// Orange data and label box data
-Widget dataAndLabelBox(double data, String label) => Container(
-      padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
-      margin: const EdgeInsets.all(10),
-      constraints: const BoxConstraints(
-        minHeight: 0,
-        maxHeight: 100,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.orangeAccent,
-        shape: BoxShape.rectangle,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8),
-        ),
-        border: Border.all(
-          width: 1,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 2,
-            child: Text(
-              '$data',
-              style: const TextStyle(
-                fontSize: 40,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-// User card
+///////////////////////////// User card ///////////////////////////////////
 class UserCard extends StatefulWidget {
   late User user;
   late List<Session> sessions;
@@ -175,12 +116,15 @@ class _UserCardState extends State<UserCard> {
   }
 
   // User card name
-  Widget _userCardName(String name) => Text(
-        name,
-        style: const TextStyle(
-          fontSize: 35,
+  Widget _userCardName(String name) => Padding(
+    padding: const EdgeInsets.fromLTRB(10.0, 10.0, 0, 0),
+    child: Text(
+          name,
+          style: const TextStyle(
+            fontSize: 40,
+          ),
         ),
-      );
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -191,46 +135,32 @@ class _UserCardState extends State<UserCard> {
         maxHeight: 200,
       ),
       padding: const EdgeInsets.all(5),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
+      child:  Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              _userCardName(widget.user.name),
+            ],
           ),
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: SizedBox(
-            //width: double.infinity,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    _userCardName(widget.user.name),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: dataAndLabelBox(widget.user.getRating, 'RATING'),
-                    ),
-                    Expanded(
-                      child: dataAndLabelBox(widget.user.getTime, 'TIME'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: StatCard(value: widget.user.getRating, title: 'RATING', type: "",),
+              ),
+              Expanded(
+                child: StatCard(value: widget.user.getTime, title: 'TIME', type: "time",),
+              ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-// Graphs (Bar) for weekly recap
+//////////////////// Graphs (Bar) for weekly recap ////////////////////////
 class WeeklyRecapGraph extends StatefulWidget {
   late List<Session> sessions;
   WeeklyRecapGraph(this.sessions);
@@ -279,7 +209,7 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
           const Text(
             'Weekly Recap',
             style: TextStyle(
-              fontSize: 30,
+              fontSize: 40,
             ),
           ),
           SfCartesianChart(
@@ -307,7 +237,7 @@ class SessionData {
   SessionData(this.day, this.rating);
 }
 
-// Graph (Circular) for quick overview
+///////////////// Graph (Circular) for quick overview /////////////////////
 class OverviewRecapGraph extends StatefulWidget {
   late User user;
   late List<Session> sessions;
@@ -354,7 +284,7 @@ class _OverviewRecapGraphState extends State<OverviewRecapGraph> {
           const Text(
             'Overview',
             style: TextStyle(
-              fontSize: 30,
+              fontSize: 40,
             ),
           ),
           SfCircularChart(
@@ -416,6 +346,8 @@ class UserData {
   UserData(this.label, this.amount, this.color);
 }
 
+
+////////////////////////// Most Recent Session ////////////////////////////
 class LastSession extends StatefulWidget {
   late List<Session> sessions;
   LastSession(this.sessions);
@@ -441,31 +373,25 @@ class _LastSessionState extends State<LastSession> {
           const Text(
             'Last Session',
             style: TextStyle(
-              fontSize: 30,
+              fontSize: 40,
             ),
           ),
           Row(
             children: [
-              Expanded(
-                child: dataAndLabelBox(
-                    widget.sessions.last.getShotPercentage * 100, "Shot %"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(
-                    widget.sessions.last.getSessionDuration, "Time"),
-              ),
+              Expanded(child: StatCard(title: "Shot Percent", type: "percent", value: widget.sessions.last.getShotPercentage)),
+              Expanded(child: StatCard(title: "Duration", type: "time", value: widget.sessions.last.getSessionDuration)),
             ],
           ),
           Row(
             children: [
-              Expanded(
-                child: dataAndLabelBox(
-                    widget.sessions.last.getSwishShots.toDouble(), "Swishes"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(
-                    widget.sessions.last.getTotalMisses.toDouble(), "Misses"),
-              ),
+              Expanded(child: StatCard(title: "Swishes", type: "count", value: widget.sessions.last.getSwishShots.toDouble())),
+              Expanded(child: StatCard(title: "Shots Made", type: "count", value: widget.sessions.last.getTotalMakes.toDouble())),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(child: StatCard(title: "Total Shots", type: "count", value: widget.sessions.last.getSwishShots.toDouble())),
+              Expanded(child: StatCard(title: "Total Misses", type: "count", value: widget.sessions.last.getTotalMisses.toDouble())),
             ],
           ),
         ],

@@ -6,7 +6,7 @@ class StatCard extends StatelessWidget {
   final String title;
   final double value;
 
-  const StatCard({required this.type, required this.title, required this.value});
+  const StatCard({required this.type, required this.title, required this.value, super.key});
 
   Widget buildCard() {
     if (type == "time") {
@@ -15,15 +15,15 @@ class StatCard extends StatelessWidget {
       return Card(
         color: Colors.orangeAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-        elevation: 0,
-        margin: EdgeInsets.all(16.0),
+        elevation: 3,
+        margin: EdgeInsets.all(10.0),
         child: SizedBox(
           height: 80,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text("$min" + "m " + "$sec" + "s", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35.0),),
-              Text(title, style: TextStyle(fontSize: 25.0),)
+              Text("$min" + "m " + "$sec" + "s", style: TextStyle( fontSize: 35.0),),
+              Text(title, style: TextStyle(fontSize: 22.0),)
             ],
           ),
         ),
@@ -34,15 +34,15 @@ class StatCard extends StatelessWidget {
       return Card(
         color: Colors.orangeAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-        elevation: 0,
-        margin: EdgeInsets.all(16.0),
+        elevation: 3,
+        margin: EdgeInsets.all(10.0),
         child: SizedBox(
           height: 80,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text(per + "s", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35.0),),
-              Text(title, style: TextStyle(fontSize: 25.0),)
+              Text(per + "%", style: TextStyle( fontSize: 35.0),),
+              Text(title, style: TextStyle(fontSize: 22.0),)
             ],
           ),
         ),
@@ -52,15 +52,15 @@ class StatCard extends StatelessWidget {
       return Card(
         color: Colors.orangeAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-        elevation: 0,
-        margin: EdgeInsets.all(16.0),
+        elevation: 3,
+        margin: EdgeInsets.all(10.0),
         child: SizedBox(
           height: 80,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text(value.toInt().toString(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35.0),),
-              Text(title, style: TextStyle(fontSize: 25.0),)
+              Text(value.toInt().toString(), style: TextStyle( fontSize: 35.0),),
+              Text(title, style: TextStyle(fontSize: 22.0),)
             ],
           ),
         ),
@@ -70,15 +70,15 @@ class StatCard extends StatelessWidget {
       return Card(
         color: Colors.orangeAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-        elevation: 0,
-        margin: EdgeInsets.all(16.0),
+        elevation: 3,
+        margin: EdgeInsets.all(10.0),
         child: SizedBox(
           height: 80,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text(value.toStringAsFixed(2), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 35.0),),
-              Text(title, style: TextStyle(fontSize: 25.0),)
+              Text(value.toStringAsFixed(2), style: TextStyle( fontSize: 35.0),),
+              Text(title, style: TextStyle(fontSize: 22.0),)
             ],
           ),
         ),
