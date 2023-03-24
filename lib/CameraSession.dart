@@ -50,9 +50,11 @@ class _CameraSessionState extends State<CameraSession> {
   @override
   Future<void> dispose() async {
     super.dispose();
-    controller.stopImageStream();
-    platform.invokeMethod('endPorcessing');
-    controller.dispose();
+    try {
+      await controller.stopImageStream();
+    } catch (e) {}
+    await platform.invokeMethod('endProcessing');
+    await controller.dispose();
   }
 
   Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {

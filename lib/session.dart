@@ -57,22 +57,14 @@ class Session {
   }
 
   // End session
-  void endSession(User user) {
+  void endSession() {
     // End time
     DateTime endTime = DateTime.now();
     Duration diff;
 
     // Get duration
-    //duration = startTime.difference(endTime);
     diff = endTime.difference(startTime);
     duration = diff.inSeconds / 60.0;
-
-    // Update user data
-    user.madeShots += madeShots;
-    user.missedShots += missedShots;
-    user.totalShots += totalShots;
-    user.bankShots += bankShots;
-    user.swishShots += swishShots;
 
     rating = ((bankShots + swishShots) * 1.5) / totalShots;
   }
