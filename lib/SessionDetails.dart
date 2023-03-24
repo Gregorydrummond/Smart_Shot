@@ -31,7 +31,7 @@ class SessionDetails extends StatelessWidget {
           ),
           Row(
             children: [
-              Expanded(child: StatCard(title: "Total Shots", type: "count", value: session.getSwishShots.toDouble())),
+              Expanded(child: StatCard(title: "Total Shots", type: "count", value: session.getTotalShots.toDouble())),
               Expanded(child: StatCard(title: "Total Misses", type: "count", value: session.getTotalMisses.toDouble())),
             ],
           ),

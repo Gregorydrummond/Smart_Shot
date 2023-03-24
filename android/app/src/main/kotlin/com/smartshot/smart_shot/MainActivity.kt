@@ -71,19 +71,14 @@ class MainActivity: FlutterActivity() {
             // Try to detect moving ball
             if (!returned) {
               var dif = Mat();
-              var max = Mat();
-              var min = Mat();
-//              absdiff(background, image, dif);
-              max(background, image, max);
-              min(background, image, min);
-              divide(max, min, dif)
+              absdiff(background, image, dif);
               addWeighted(background, 0.98, image, 0.02, 0.0, background);
 
-//              threshold(dif, dif, 30.0, 255.0, THRESH_BINARY);
-              threshold(dif, dif, 1.2, 255.0, THRESH_BINARY);
+              threshold(dif, dif, 30.0, 255.0, THRESH_BINARY);
               val kernel = getStructuringElement(MORPH_RECT, Size(3.0, 3.0));
               erode(dif, dif, kernel, Point(-1.0, -1.0), 2);
               dilate(dif, dif, kernel, Point(-1.0, -1.0), 2);
+//              imwrite(dcim.absolutePath + "/dif.png", dif);
 
               if (!returned) {
                 // Find the contours
@@ -100,12 +95,12 @@ class MainActivity: FlutterActivity() {
                   val ratio = (bbox.width * bbox.height) / (dif.width() * dif.height() / 2.0)
 
                   // too big, too small, not square enough
-                  if (ratio < 0.01 || ratio > 0.25 || bbox.width / (bbox.height + 0.0) < 0.8 || bbox.width / (bbox.height + 0.0) > 1.2) {
+                  if (ratio < 0.005 || ratio > 0.013 || bbox.width / (bbox.height + 0.0) < 0.85 || bbox.width / (bbox.height + 0.0) > 1.15) {
                     continue;
                   }
 
                   // starts from too low in the screen
-                  if (!shotIsLive && bbox.y + (bbox.height/2) > dif.width()) {
+                  if (bbox.y + (bbox.height/2) > dif.height()/2) {
                     continue;
                   }
 

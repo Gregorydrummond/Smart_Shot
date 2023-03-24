@@ -6,6 +6,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_shot/CameraSession.dart';
+import 'package:smart_shot/StatCard.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'dart:io';
 import 'dart:async';
@@ -42,6 +43,15 @@ class _SessionPageState extends State<SessionPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    session.endSession(widget.user);
+    widget.user.sessions.add(session);
+    await service.saveSession(session);
+    await unsubscribeFromCharacteristic();
   }
 
   // Widget to start the session
@@ -82,34 +92,30 @@ class _SessionPageState extends State<SessionPage> {
             Row(
               children: [
                 Expanded(
-                  child:
-                      _buildDataBox("${session.getTotalMakes}", "Shots made"),
+                  child: StatCard(value: session.getTotalMakes.toDouble(), title: "Shots made", type: "count",),
                 ),
                 Expanded(
-                  child:
-                      _buildDataBox("${session.getTotalShots}", "Total Shots"),
+                  child: StatCard(value: session.getTotalShots.toDouble(), title: "Total Shots", type: "count"),
                 ),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: _buildDataBox(
-                      "${session.getTotalMisses}", "Shots missed"),
+                  child: StatCard(value: session.getTotalMisses.toDouble(), title: "Shots missed", type: "count"),
                 ),
                 Expanded(
-                  child: _buildDataBox(
-                      "${session.getShotPercentage * 100}%", "Shot %"),
+                  child: StatCard(value: session.getShotPercentage, title: "Shot %", type: "percent"),
                 ),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: _buildDataBox("0m", "Time"),
+                  child: StatCard(value: session.getAirballShots.toDouble(), title: "Airballs", type: "count",),
                 ),
                 Expanded(
-                  child: _buildDataBox("0", "Current Streak"),
+                  child: StatCard(value: 0.0, title: "Current Streak", type: "count",),
                 ),
               ],
             ),
@@ -119,8 +125,9 @@ class _SessionPageState extends State<SessionPage> {
                 onPressed: () {
                   setState(() {
                     sessionStarted = false;
-                    unsubscribeFromCharacteristic();
-                    endSession();
+                    widget.end();
+                    // unsubscribeFromCharacteristic();
+                    // endSession();
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -147,7 +154,9 @@ class _SessionPageState extends State<SessionPage> {
       setState(() {
         shot = data.isNotEmpty ? data.first : -1;
         if (shot != -1) {
-          timer.cancel();
+          try {
+            timer.cancel();
+          } catch (e) {}
         }
         switch (shot) {
           case 0:
@@ -182,7 +191,7 @@ class _SessionPageState extends State<SessionPage> {
   }
 
   // Unsubscribe from random characteristic
-  void unsubscribeFromCharacteristic() {
+  Future<void> unsubscribeFromCharacteristic() async {
     ConnectDevice.flutterReactiveBLEPlatform.stopSubscribingToNotifications(
         ConnectDevice.randomQualifiedCharacteristic);
   }
@@ -193,7 +202,7 @@ class _SessionPageState extends State<SessionPage> {
   }
 
   // End session
-  void endSession() {
+  Future<void> endSession() async {
     session.endSession(widget.user);
     service.saveSession(session);
     widget.user.sessions.add(session);
@@ -213,42 +222,3 @@ class _SessionPageState extends State<SessionPage> {
     );
   }
 }
-
-// Function to build those orange boxes
-Widget _buildDataBox(String shotData, String dataLabel) => Container(
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.all(10),
-      height: 150,
-      decoration: BoxDecoration(
-        color: Colors.orangeAccent,
-        shape: BoxShape.rectangle,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8),
-        ),
-        border: Border.all(
-          width: 1,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 2,
-            child: Text(
-              shotData,
-              style: const TextStyle(
-                fontSize: 70,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              dataLabel,
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
