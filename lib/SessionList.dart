@@ -10,13 +10,11 @@ import 'User.dart';
 import 'StatCard.dart';
 
 class SessionList extends StatefulWidget {
-  late User user;
   late IsarService service;
   late List<Session> sessions;
   late int count;
   SessionList(
       {super.key,
-      required this.user,
       required this.service,
       required this.sessions,
       required this.count});
@@ -55,7 +53,7 @@ class _SessionListState extends State<SessionList> with SingleTickerProviderStat
               ),
               body: TabBarView(
                 children: [
-                  sessionListView(widget.user, count, widget.service),
+                  sessionListView(count, widget.service),
                   Calendar(sessions: sessions),
                 ],
               ))),
@@ -208,7 +206,7 @@ Widget buildEventList(List<Session> selectedEvents) {
   );
 }
 
-Widget sessionListView(User user, int count, IsarService service) => 
+Widget sessionListView(int count, IsarService service) => 
   FutureBuilder<List<Session>>(
     future: service.getAllSessions(),
     builder: (context, AsyncSnapshot<List<Session>> snapshot) {

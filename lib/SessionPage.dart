@@ -16,13 +16,11 @@ import 'User.dart';
 import 'Home.dart';
 
 class SessionPage extends StatefulWidget {
-  late User user;
   final List<CameraDescription> cameras;
   Function end;
 
   SessionPage(
       {super.key,
-      required this.user,
       required this.cameras,
       required this.end});
 
@@ -48,8 +46,7 @@ class _SessionPageState extends State<SessionPage> {
   @override
   Future<void> dispose() async {
     super.dispose();
-    session.endSession(widget.user);
-    widget.user.sessions.add(session);
+    session.endSession();
     await service.saveSession(session);
     await unsubscribeFromCharacteristic();
   }
@@ -203,9 +200,7 @@ class _SessionPageState extends State<SessionPage> {
 
   // End session
   Future<void> endSession() async {
-    session.endSession(widget.user);
     service.saveSession(session);
-    widget.user.sessions.add(session);
     widget.end();
   }
 

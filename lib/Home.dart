@@ -141,7 +141,7 @@ class _UserCardState extends State<UserCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              _userCardName(widget.user.name),
+              _userCardName(widget.user.name!),
             ],
           ),
           Row(
