@@ -99,8 +99,8 @@ class _HomeState extends State<Home> {
 
 ///////////////////////////// User card ///////////////////////////////////
 class UserCard extends StatefulWidget {
-  late User user;
-  late List<Session> sessions;
+  User user;
+  List<Session> sessions;
   UserCard(this.user, this.sessions);
 
   @override

@@ -18,11 +18,13 @@ import 'Home.dart';
 class SessionPage extends StatefulWidget {
   final List<CameraDescription> cameras;
   Function end;
+  Function start;
 
   SessionPage(
       {super.key,
       required this.cameras,
-      required this.end});
+      required this.end,
+      required this.start});
 
   @override
   State<SessionPage> createState() => _SessionPageState();
@@ -46,9 +48,9 @@ class _SessionPageState extends State<SessionPage> {
   @override
   Future<void> dispose() async {
     super.dispose();
-    session.endSession();
-    await service.saveSession(session);
-    await unsubscribeFromCharacteristic();
+    // session.endSession();
+    // await service.saveSession(session);
+    // await unsubscribeFromCharacteristic();
   }
 
   // Widget to start the session
@@ -61,9 +63,18 @@ class _SessionPageState extends State<SessionPage> {
               child: OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    sessionStarted = true;
-                    startNewSession();
-                    _subToCharacteristic();
+                    try {
+                      _subToCharacteristic();
+                      startNewSession();
+                      sessionStarted = true;
+                    } 
+                    catch (e) {
+                      setState(() {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Please connect to bluetooth device"),
+                        ));
+                      });
+                    }
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -122,9 +133,9 @@ class _SessionPageState extends State<SessionPage> {
                 onPressed: () {
                   setState(() {
                     sessionStarted = false;
-                    widget.end();
+                    // widget.end();
                     // unsubscribeFromCharacteristic();
-                    // endSession();
+                    endSession();
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -196,11 +207,14 @@ class _SessionPageState extends State<SessionPage> {
   // Create new session
   void startNewSession() {
     session = Session();
+    widget.start();
   }
 
   // End session
   Future<void> endSession() async {
-    service.saveSession(session);
+    session.endSession();
+    await service.saveSession(session);
+    await unsubscribeFromCharacteristic();
     widget.end();
   }
 

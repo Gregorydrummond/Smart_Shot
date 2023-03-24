@@ -117,7 +117,7 @@ class _ConnectDeviceState extends State<ConnectDevice> {
       ConnectDevice._scanStarted = true;
     });
     if (Platform.isAndroid) {
-      if (await Permission.location.request().isGranted && await Permission.bluetoothConnect.request().isGranted) {
+      if (await Permission.location.request().isGranted && await Permission.bluetoothConnect.request().isGranted && await Permission.bluetoothScan.request().isGranted) {
         // Either the permission was already granted before or the user just granted it.
         permGranted = true;
       }

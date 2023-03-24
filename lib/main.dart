@@ -66,8 +66,7 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final service = IsarService();
   static User user = User(null);
-  late SharedPreferences prefs;
-  // Indices and corresponding widget/screen for the bottom nav bar
+  bool sessionLive = false;
   int currentIndex = 0;
   int count = 0;
   List<Session> sessions = [];
@@ -75,7 +74,7 @@ class _MainPageState extends State<MainPage> {
   Widget selectPage() {
     List<Widget> screens = [
       Home(user: user),
-      SessionPage(cameras: _cameras, end: endSession),
+      SessionPage(cameras: _cameras, end: endSession, start: startSession),
       SessionList(
         service: service,
         sessions: sessions,
@@ -86,13 +85,17 @@ class _MainPageState extends State<MainPage> {
     return screens[currentIndex];
   }
 
+  startSession() {
+    sessionLive = true;
+  }
+
   endSession() {
     setState(() {
+      sessionLive = false;
       currentIndex = 0;
     });
   }
 
-  // For future use
   @override
   void initState() {
     super.initState();
@@ -196,8 +199,10 @@ class _MainPageState extends State<MainPage> {
         ],
         onTap: (index) {
           setState(() {
-            currentIndex = index;
-            initSessions();
+            if (currentIndex != 1 || !sessionLive) {
+              currentIndex = index;
+              initSessions();
+            }
           });
         },
       ),
