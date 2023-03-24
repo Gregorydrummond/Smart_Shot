@@ -222,10 +222,10 @@ Widget sessionListView(
                 Session session = Session();
                 session.shotTaken(ShotType.swish);
                 session.shotTaken(ShotType.miss);
-                session.shotTaken(ShotType.swish);
                 session.shotTaken(ShotType.miss);
-                session.shotTaken(ShotType.bank);
-                session.shotTaken(ShotType.bank);
+                session.shotTaken(ShotType.miss);
+                session.shotTaken(ShotType.miss);
+                session.shotTaken(ShotType.miss);
                 session.endSession(user);
                 session.duration = 10.0;
                 service.saveSession(session);

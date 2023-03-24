@@ -108,8 +108,8 @@ class _MainPageState extends State<MainPage> {
         this.sessions = sessions;
         count = this.sessions.length;
       });
-
-      throw Error();
+    return sessions;
+     // throw Error();
     });
   }
 
