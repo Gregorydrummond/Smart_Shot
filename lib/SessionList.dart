@@ -4,17 +4,17 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'Home.dart';
+import 'SessionDetails.dart';
 import 'session.dart';
 import 'User.dart';
+import 'StatCard.dart';
 
 class SessionList extends StatefulWidget {
-  late User user;
   late IsarService service;
   late List<Session> sessions;
   late int count;
   SessionList(
       {super.key,
-      required this.user,
       required this.service,
       required this.sessions,
       required this.count});
@@ -23,17 +23,10 @@ class SessionList extends StatefulWidget {
   State<SessionList> createState() => _SessionListState();
 }
 
-class _SessionListState extends State<SessionList> {
+class _SessionListState extends State<SessionList> with SingleTickerProviderStateMixin {
   int count = 0;
   final int TAB_COUNT = 2;
   List<Session> sessions = [];
-
-  void update(List<Session> sessions, int newCount) {
-    setState(() {
-      this.sessions = sessions;
-      count = newCount;
-    });
-  }
 
   @override
   void initState() {
@@ -49,18 +42,18 @@ class _SessionListState extends State<SessionList> {
           length: TAB_COUNT,
           child: Scaffold(
               appBar: AppBar(
-                title: const Text('Sessions'),
+                title: const Text('Sessions', style: TextStyle(color: Colors.black),),
                 backgroundColor: Colors.orangeAccent,
                 bottom: const TabBar(
                   tabs: [
-                    Tab(icon: Icon(Icons.list)),
-                    Tab(icon: Icon(Icons.calendar_month)),
+                    Tab(icon: Icon(Icons.list, color: Colors.black,)),
+                    Tab(icon: Icon(Icons.calendar_month, color: Colors.black,)),
                   ],
                 ),
               ),
               body: TabBarView(
                 children: [
-                  sessionListView(widget.user, count, widget.service, update),
+                  sessionListView(count, widget.service),
                   Calendar(sessions: sessions),
                 ],
               ))),
@@ -213,73 +206,42 @@ Widget buildEventList(List<Session> selectedEvents) {
   );
 }
 
-Widget sessionListView(
-        User user, int count, IsarService service, Function update) =>
-    SingleChildScrollView(
-      child: Column(
-        children: [
-          TextButton(
-              onPressed: () async {
-                Session session = Session();
-                session.shotTaken(ShotType.swish);
-                session.shotTaken(ShotType.bank);
-                session.shotTaken(ShotType.swish);
-                session.shotTaken(ShotType.miss);
-                session.shotTaken(ShotType.miss);
-                session.shotTaken(ShotType.miss);
-                session.endSession(user);
-                session.duration = 10.0;
-                service.saveSession(session);
-
-                List<Session> list = await service.getAllSessions();
-                update(list, list.length);
-              },
-              child: Text('Add Session')),
-          Text(count.toString()),
-          TextButton(
-              onPressed: () async {
-                await service.cleanDb();
-                List<Session> emptyList = [];
-                update(emptyList, 0);
-              },
-              child: Text('Clean DB')),
-          FutureBuilder<List<Session>>(
-              future: service.getAllSessions(),
-              builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-                if (snapshot.hasData) {
-                  if (snapshot.data!.isEmpty) {
-                    return Center(
-                        child: Container(
-                            margin: EdgeInsets.only(top: 12.0),
-                            child: const Text('There are no sessions',
-                                style: TextStyle(
-                                  fontSize: 15.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ))));
-                  } else {
-                    return SingleChildScrollView(
-                      child: Column(
-                          children: (snapshot.data!)
-                              .map((session) => SessionCard(
-                                  session)) // TODO: Make session card its own class
-                              .toList()),
-                    );
-                  }
-                } else {
-                  return CircularProgressIndicator();
-                }
-              })
-        ],
-      ),
-    );
+Widget sessionListView(int count, IsarService service) => 
+  FutureBuilder<List<Session>>(
+    future: service.getAllSessions(),
+    builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+      if (snapshot.hasData) {
+        if (snapshot.data!.isEmpty) {
+          return Center(
+              child: Container(
+                  margin: EdgeInsets.only(top: 12.0),
+                  child: const Text('There are no sessions',
+                      style: TextStyle(
+                        fontSize: 25.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ))));
+        }
+        else {
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              return SessionCard(session: snapshot.data![index]);
+            },
+          );
+        }
+      }
+      else {
+        return CircularProgressIndicator();
+      }
+    }
+  );
 
 Widget sessionCalendarView() => const Icon(Icons.calendar_month);
 
 class SessionCard extends StatelessWidget {
-  final service = IsarService();
   final Session session;
-  SessionCard(this.session);
+  const SessionCard({required this.session, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -289,115 +251,42 @@ class SessionCard extends StatelessWidget {
             MaterialPageRoute(builder: (context) => SessionDetails(session)));
       },
       child: Card(
-          elevation: 10,
+          elevation: 5,
           color: Colors.orangeAccent,
           margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              color: Colors.black,
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(5)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Text('Total Shots: ${session.totalShots}',
-                        style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black)),
-                    const SizedBox(
-                      width: 12,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+          child: ListTile(
+                    leading: Text(
+                      "${(session.getShotPercentage*100).toStringAsFixed(1)}%", 
+                      style: const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
                     ),
-                    Text('Shot Percentage: ${session.shotPercentage * 100}%',
-                        style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black))
-                  ],
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Row(
-                  children: [
-                    Text(
-                        'Stats: ${session.getShotPercentage}/${session.getTotalMakes}/${session.getTotalShots}',
-                        style: TextStyle(
-                            fontSize: 10.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black))
-                  ],
-                )
-              ],
-            ),
-          )),
-          
-    );
-  }
-}
-
-class SessionDetails extends StatelessWidget {
-  Session session;
-  SessionDetails(this.session, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
-        title: const Text('Session Details'),
-      ),
-      body: Column(
-        children: [
-          const Text(
-            'Last Session',
-            style: TextStyle(
-              fontSize: 30,
-            ),
+                    title: Text(
+                      '${session.startTime.month}/${session.startTime.day}/${session.startTime.year}',
+                      style: TextStyle(fontSize: 20.0),
+                    ),
+                    subtitle: Text(
+                      'Total Shots: ${session.getTotalShots}',
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                    trailing: Container(
+                      width: 70,
+                      height: 70,
+                      child: SfCircularChart(
+                        series: <CircularSeries>[
+                          PieSeries<ChartData, String>(
+                            dataSource: [
+                              ChartData("Shots Made", session.getTotalMakes.toDouble(), Colors.green),
+                              ChartData("Shots Missed", session.getTotalMisses.toDouble(), Colors.red)
+                            ],
+                            pointColorMapper: (ChartData data, _) => data.color,
+                            xValueMapper: (ChartData data, _) => data.x,
+                            yValueMapper: (ChartData data, _) => data.y,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
           ),
-          Row(
-            children: [
-              Expanded(
-                child:
-                    dataAndLabelBox(session.getShotPercentage * 100, "Shot %"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(session.getSessionDuration, "Time"),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: dataAndLabelBox(
-                    session.getSwishShots.toDouble(), "Swishes"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(
-                    session.getTotalMisses.toDouble(), "Misses"),
-              ),
-            ],
-          ),
-           Row(
-            children: [
-              // Expanded(
-              //   child: dataAndLabelBox(
-              //       session.getStreak.toDouble(), "Current Streak"),
-              // ),
-              Expanded(
-                child: dataAndLabelBox(
-                    session.getHotStreak.toDouble(), "Longest Streak"),
-              ),
-            ],
-          ),
-
-        
-        ],
-      ),
     );
   }
 }
