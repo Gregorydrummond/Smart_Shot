@@ -6,6 +6,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_shot/CameraSession.dart';
+import 'package:smart_shot/StatCard.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'dart:io';
 import 'dart:async';
@@ -15,15 +16,15 @@ import 'User.dart';
 import 'Home.dart';
 
 class SessionPage extends StatefulWidget {
-  late User user;
   final List<CameraDescription> cameras;
   Function end;
+  Function start;
 
   SessionPage(
       {super.key,
-      required this.user,
       required this.cameras,
-      required this.end});
+      required this.end,
+      required this.start});
 
   @override
   State<SessionPage> createState() => _SessionPageState();
@@ -37,10 +38,19 @@ class _SessionPageState extends State<SessionPage> {
 
   // Data
   int shot = 0;
+  late Timer timer;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    // session.endSession();
+    // await service.saveSession(session);
+    // await unsubscribeFromCharacteristic();
   }
 
   // Widget to start the session
@@ -53,9 +63,18 @@ class _SessionPageState extends State<SessionPage> {
               child: OutlinedButton(
                 onPressed: () {
                   setState(() {
-                    sessionStarted = true;
-                    startNewSession();
-                    _subToCharacteristic();
+                    try {
+                      _subToCharacteristic();
+                      startNewSession();
+                      sessionStarted = true;
+                    } 
+                    catch (e) {
+                      setState(() {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Please connect to bluetooth device"),
+                        ));
+                      });
+                    }
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -77,38 +96,34 @@ class _SessionPageState extends State<SessionPage> {
   Widget liveFeedScreen() => SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            CameraSession(cameras: widget.cameras),
+            CameraSession(cameras: widget.cameras, ballDetected: ballDetected,),
             Row(
               children: [
                 Expanded(
-                  child:
-                      _buildDataBox("${session.getTotalMakes}", "Shots made"),
+                  child: StatCard(value: session.getTotalMakes.toDouble(), title: "Shots made", type: "count",),
                 ),
                 Expanded(
-                  child:
-                      _buildDataBox("${session.getTotalShots}", "Total Shots"),
+                  child: StatCard(value: session.getTotalShots.toDouble(), title: "Total Shots", type: "count"),
                 ),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: _buildDataBox(
-                      "${session.getTotalMisses}", "Shots missed"),
+                  child: StatCard(value: session.getTotalMisses.toDouble(), title: "Shots missed", type: "count"),
                 ),
                 Expanded(
-                  child: _buildDataBox(
-                      "${session.getShotPercentage * 100}%", "Shot %"),
+                  child: StatCard(value: session.getShotPercentage, title: "Shot %", type: "percent"),
                 ),
               ],
             ),
             Row(
               children: [
                 Expanded(
-                  child: _buildDataBox("0m", "Time"),
+                  child: StatCard(value: session.getAirballShots.toDouble(), title: "Airballs", type: "count",),
                 ),
                 Expanded(
-                  child: _buildDataBox("0", "Current Streak"),
+                  child: StatCard(value: 0.0, title: "Current Streak", type: "count",),
                 ),
               ],
             ),
@@ -118,7 +133,8 @@ class _SessionPageState extends State<SessionPage> {
                 onPressed: () {
                   setState(() {
                     sessionStarted = false;
-                    unsubscribeFromCharacteristic();
+                    // widget.end();
+                    // unsubscribeFromCharacteristic();
                     endSession();
                   });
                 },
@@ -145,6 +161,11 @@ class _SessionPageState extends State<SessionPage> {
       //print(data);
       setState(() {
         shot = data.isNotEmpty ? data.first : -1;
+        if (shot != -1) {
+          try {
+            timer.cancel();
+          } catch (e) {}
+        }
         switch (shot) {
           case 0:
             print("Shot misses");
@@ -167,8 +188,18 @@ class _SessionPageState extends State<SessionPage> {
     });
   }
 
+  // Listen for the airball from the camera
+  void ballDetected() {
+    timer = Timer(Duration(seconds: 5), () {
+      setState(() {
+        print("Airball!!");
+        session.shotTaken(ShotType.airball);
+      });
+    });
+  }
+
   // Unsubscribe from random characteristic
-  void unsubscribeFromCharacteristic() {
+  Future<void> unsubscribeFromCharacteristic() async {
     ConnectDevice.flutterReactiveBLEPlatform.stopSubscribingToNotifications(
         ConnectDevice.randomQualifiedCharacteristic);
   }
@@ -176,17 +207,16 @@ class _SessionPageState extends State<SessionPage> {
   // Create new session
   void startNewSession() {
     session = Session();
+    widget.start();
   }
 
   // End session
-  void endSession() {
-    session.endSession(widget.user);
-    service.saveSession(session);
-    widget.user.sessions.add(session);
+  Future<void> endSession() async {
+    session.endSession();
+    await service.saveSession(session);
+    await unsubscribeFromCharacteristic();
     widget.end();
   }
-
-  // Override dispose function
 
   // Return the start session or the live session screen
   @override
@@ -201,42 +231,3 @@ class _SessionPageState extends State<SessionPage> {
     );
   }
 }
-
-// Function to build those orange boxes
-Widget _buildDataBox(String shotData, String dataLabel) => Container(
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.all(10),
-      height: 150,
-      decoration: BoxDecoration(
-        color: Colors.orangeAccent,
-        shape: BoxShape.rectangle,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8),
-        ),
-        border: Border.all(
-          width: 1,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 2,
-            child: Text(
-              shotData,
-              style: const TextStyle(
-                fontSize: 70,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              dataLabel,
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );

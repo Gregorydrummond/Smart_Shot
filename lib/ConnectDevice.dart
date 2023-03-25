@@ -17,6 +17,7 @@ class ConnectDevice extends StatefulWidget {
   static final ReactiveBlePlatform flutterReactiveBLEPlatform =
       ReactiveBlePlatform.instance;
   static late StreamSubscription<DiscoveredDevice> _scanStream;
+  static late StreamSubscription<ConnectionStateUpdate> _connectionStream;
   static late List<DiscoveredService> _discoveredServices;
   static late QualifiedCharacteristic randomQualifiedCharacteristic;
   static late DiscoveredCharacteristic randomDiscoveredCharacteristic;
@@ -37,9 +38,64 @@ class _ConnectDeviceState extends State<ConnectDevice> {
   static final Uuid switchCharacteristicUuid =
       Uuid.parse('00002a57-0000-1000-8000-00805f9b34fb');
 
+  static const int TIMEOUT_DURATION = 7500;
+  static bool scanRestarted = false;
+  static bool connectRestarted = false;
+
+  void restartScan(bool scanRestart) {
+    setState(() {
+      scanRestarted = scanRestart;
+    });
+  }
+
+  void restartConnect(bool connectRestart) {
+    setState(() {
+      connectRestarted = connectRestart;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+  }
+
+  // Dialogs
+  Future showAlertDialog(String title, String content) {
+    print("Showing alert");
+    return showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  if (ConnectDevice._scanStarted) {
+                    restartScan(false);
+                  } else {
+                    restartConnect(false);
+                  }
+                  Navigator.of(context).pop();
+                },
+                child: const Text('No'),
+              ),
+              TextButton(
+                onPressed: () {
+                  if (ConnectDevice._scanStarted) {
+                    restartScan(true);
+                  } else {
+                    restartConnect(true);
+                  }
+
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Yes'),
+              ),
+            ],
+          );
+        });
   }
 
   // Start a scan for peripheral devices
@@ -61,7 +117,7 @@ class _ConnectDeviceState extends State<ConnectDevice> {
       ConnectDevice._scanStarted = true;
     });
     if (Platform.isAndroid) {
-      if (await Permission.location.request().isGranted) {
+      if (await Permission.location.request().isGranted && await Permission.bluetoothConnect.request().isGranted && await Permission.bluetoothScan.request().isGranted) {
         // Either the permission was already granted before or the user just granted it.
         permGranted = true;
       }
@@ -70,12 +126,64 @@ class _ConnectDeviceState extends State<ConnectDevice> {
     }
 
     if (permGranted) {
+      ConnectDevice._scanStarted = true;
+      print("Scan started");
+
+      // Start Stopwatch
+      Stopwatch stopwatch = Stopwatch();
+      int elaspedTime;
+      stopwatch.start();
+
       ConnectDevice._scanStream = ConnectDevice.flutterReactiveBLE
-          .scanForDevices(withServices: []).listen((device) {
+          .scanForDevices(withServices: []).listen((device) async {
+        print("listening");
+
+        elaspedTime = stopwatch.elapsedMilliseconds;
+        print(elaspedTime);
+
+        // Timeout
+        if ((elaspedTime >= TIMEOUT_DURATION) & stopwatch.isRunning) {
+          // Stop stopwatch
+          stopwatch.stop();
+
+          // Pause stream
+          ConnectDevice._scanStream.pause();
+          //ConnectDevice._scanStarted = false;
+
+          await showAlertDialog('Scan Failed',
+              'SmartShot device not found. Do you want to continue scanning?');
+
+          if (scanRestarted) {
+            print("Restarting scan");
+            // Restart stopwatch
+            stopwatch.reset();
+            stopwatch.start();
+            ConnectDevice._scanStream.resume();
+            //ConnectDevice._scanStarted = false;
+          } else {
+            print("Stopping scan");
+            ConnectDevice._scanStream.cancel();
+            ConnectDevice._scanStarted = false;
+            // Go back to the home screen
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+            widget.onConnection(message: "SmartShot device not found");
+          }
+        }
+
         if (device.name == 'SmartShot') {
           setState(() {
             ConnectDevice.smartShotDevice = device;
+            ConnectDevice._scanStarted = false;
             ConnectDevice._foundDeviceWaitingToConnect = true;
+
+            // Stop scanning
+            ConnectDevice._scanStream.cancel();
+            print("Scanning is done");
+
+            // Stop stopwatch when device is found
+            stopwatch.stop();
+
             _connectToDevice();
           });
         }
@@ -85,17 +193,18 @@ class _ConnectDeviceState extends State<ConnectDevice> {
 
   // Connect to device
   void _connectToDevice() {
-    // Stop scanning
-    ConnectDevice._scanStream.cancel();
+// Start Stopwatch
+    Stopwatch stopwatch = Stopwatch();
+    int elaspedTime;
+    stopwatch.start();
 
     // Connect to Smart Shot device. Method returns a stream to listen to connection state
-    Stream<ConnectionStateUpdate> _currentConnectionStatus =
-        ConnectDevice.flutterReactiveBLE.connectToDevice(
+    ConnectDevice._connectionStream = ConnectDevice.flutterReactiveBLE
+        .connectToDevice(
       id: ConnectDevice.smartShotDevice.id,
       connectionTimeout: const Duration(seconds: 5),
-    );
-
-    _currentConnectionStatus.listen((event) async {
+    )
+        .listen((event) async {
       switch (event.connectionState) {
         case DeviceConnectionState.connected:
           {
@@ -118,20 +227,53 @@ class _ConnectDeviceState extends State<ConnectDevice> {
                 }
               }
             }
-            setState(() {
-              ConnectDevice._foundDeviceWaitingToConnect = false;
-              ConnectDevice._connected = true;
-              widget.onConnection();
-            });
 
+            // Switched the order of these (return if it looks weird)
             // Pop the loading animation and the connect to device screen
             Navigator.of(context).pop();
             Navigator.of(context).pop();
+
+            setState(() {
+              ConnectDevice._foundDeviceWaitingToConnect = false;
+              ConnectDevice._connected = true;
+              widget.onConnection(message: "SmartShot Device Connected!");
+            });
+
             break;
           }
         case DeviceConnectionState.connecting:
           {
             print('Connecting...');
+
+            elaspedTime = stopwatch.elapsedMilliseconds;
+            print(elaspedTime);
+
+            // Timeout
+            if ((elaspedTime >= TIMEOUT_DURATION) & stopwatch.isRunning) {
+              // Stop stopwatch
+              stopwatch.stop();
+
+              // Pause the stream
+              ConnectDevice._connectionStream.pause();
+
+              await showAlertDialog('Connection Failed',
+                  'SmartShot device not connected. Do you want to try again?');
+
+              if (connectRestarted) {
+                print("Reattempting to connect");
+                // Restart stopwatch
+                stopwatch.reset();
+                stopwatch.start();
+                ConnectDevice._connectionStream.resume();
+              } else {
+                print("Stopping connection");
+                ConnectDevice._connectionStream.cancel();
+                // Go back to the home screen
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                widget.onConnection(message: "Connection failed");
+              }
+            }
             break;
           }
         case DeviceConnectionState.disconnected:

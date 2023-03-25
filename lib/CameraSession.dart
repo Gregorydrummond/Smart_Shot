@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
-import 'dart:io';
 import 'dart:async';
 
 class CameraSession extends StatefulWidget {
   final List<CameraDescription> cameras;
-  const CameraSession({super.key, required this.cameras});
+  final Function ballDetected;
+  const CameraSession({super.key, required this.cameras, required this.ballDetected});
 
   @override
   State<CameraSession> createState() => _CameraSessionState();
@@ -48,23 +48,22 @@ class _CameraSessionState extends State<CameraSession> {
   }
 
   @override
-  void dispose() {
-    controller.stopImageStream();
-    platform.invokeMethod('endPorcessing');
-    controller.dispose();
+  Future<void> dispose() async {
     super.dispose();
+    try {
+      await controller.stopImageStream();
+    } catch (e) {}
+    await platform.invokeMethod('endProcessing');
+    await controller.dispose();
   }
 
   Future<void> _processImage({required int width, required int height, required Uint8List bytes}) async {
     try {
-      if (frame % 1 == 0) {
-        frame = 1;
-        boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
-        setState(() {});
+      boundingBox = await platform.invokeMethod('processImage', {"width": width, "height": height, "bytes": bytes});
+      if (boundingBox[0] == 3) {
+        widget.ballDetected();
       }
-      else {
-        frame += 1;
-      }
+      setState(() {});
     } on PlatformException catch (e) {
       return;
     }
@@ -102,7 +101,10 @@ class _CameraSessionState extends State<CameraSession> {
               double height = 0;
               RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
               height = renderBox.size.height;
-              return Container(
+              List<Widget> widgets = [];
+              widgets.addAll(buildCameraGuides());
+
+              widgets.add(Container(
                 height: height,
                 padding: EdgeInsets.only(top: height * 0.05),
                 child: Column(
@@ -131,7 +133,8 @@ class _CameraSessionState extends State<CameraSession> {
                     ),
                   ],
                 ),
-              );
+              ));
+              return Stack(children: widgets);
             }
             catch (e) {
               return Center(
@@ -178,7 +181,7 @@ class _CameraSessionState extends State<CameraSession> {
           height: (boundingBox[4] / boundingBox[6]) * height,
           child: Container(
             decoration: BoxDecoration(border: Border.all(color: const Color.fromARGB(255, 0, 255, 0), width: 2.0)),
-            child: const Text("Ball", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0))),
+            child: const Text("", style: TextStyle(color: Color.fromARGB(255, 0, 255, 0))),
           )
         );
       }
@@ -187,6 +190,43 @@ class _CameraSessionState extends State<CameraSession> {
     }
 
     return box;
+  }
+
+  List<Widget> buildCameraGuides() {
+    List<Widget> guide = [Container()];
+    final size = MediaQuery.of(context).size;
+
+    try {
+      RenderBox renderBox = camKey.currentContext!.findRenderObject() as RenderBox;
+      double height = renderBox.size.height;
+
+      if (height > size.width) {
+        guide = [
+            Positioned(
+              left: 0,
+              top: size.width,
+              width: size.width,
+              height: height - size.width,
+              child: Container(
+                color: Color.fromARGB(145, 0, 0, 0)
+              )
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              width: size.width,
+              height: size.width,
+              child: Container(
+                decoration: BoxDecoration(border: Border.all(color: Color.fromARGB(145, 0, 0, 0), width: size.width*0.2)),
+              )
+            )
+          ];
+      }
+    } catch (e) {
+      print("Probably need a future builder");
+    }
+
+    return guide;
   }
 
   Widget buildCamera() => CameraPreview(controller, key: camKey);
