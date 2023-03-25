@@ -564,8 +564,7 @@ class _LastSessionState extends State<LastSession> {
             children: [
               
               Expanded(
-                child: dataAndLabelBox(
-                    widget.sessions.last.getHotStreak.toDouble(), "Longest Streak"),
+                child: StatCard(value: widget.sessions.last.getHotStreak.toDouble(), title: "Longest Streak", type: "count"),
               ),
             ],
           ),
