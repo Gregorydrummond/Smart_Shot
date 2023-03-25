@@ -11,6 +11,7 @@ class User {
   int swishShots = 0;
   int totalShots = 0;
   int bankShots = 0;
+  int hotStreak = 0;
   User(this.name);
 
   void calculateStats() {

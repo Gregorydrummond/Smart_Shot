@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'Home.dart';
@@ -221,8 +222,8 @@ Widget sessionListView(
               onPressed: () async {
                 Session session = Session();
                 session.shotTaken(ShotType.swish);
-                session.shotTaken(ShotType.miss);
-                session.shotTaken(ShotType.miss);
+                session.shotTaken(ShotType.bank);
+                session.shotTaken(ShotType.swish);
                 session.shotTaken(ShotType.miss);
                 session.shotTaken(ShotType.miss);
                 session.shotTaken(ShotType.miss);
@@ -334,6 +335,7 @@ class SessionCard extends StatelessWidget {
               ],
             ),
           )),
+          
     );
   }
 }
@@ -380,6 +382,20 @@ class SessionDetails extends StatelessWidget {
               ),
             ],
           ),
+           Row(
+            children: [
+              // Expanded(
+              //   child: dataAndLabelBox(
+              //       session.getStreak.toDouble(), "Current Streak"),
+              // ),
+              Expanded(
+                child: dataAndLabelBox(
+                    session.getHotStreak.toDouble(), "Longest Streak"),
+              ),
+            ],
+          ),
+
+        
         ],
       ),
     );

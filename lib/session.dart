@@ -15,6 +15,8 @@ class Session {
   int bankShots = 0;
   int swishShots = 0;
   int missedShots = 0;
+  int hotStreak = 0;
+  int streak = 0;
   double shotPercentage = 0;
   late DateTime startTime;
   double duration = 0.0;
@@ -32,15 +34,22 @@ class Session {
       case ShotType.swish:
         madeShots++;
         swishShots++;
+        streak++;
         break;
       case ShotType.bank:
         bankShots++;
         madeShots++;
+        streak++;
         break;
       case ShotType.miss:
         missedShots++;
+        streak = 0;
         break;
       default:
+    }
+
+    if(streak > hotStreak){
+      hotStreak = streak;
     }
 
     // Add to total shots
@@ -69,6 +78,7 @@ class Session {
     user.bankShots += bankShots;
     user.swishShots += swishShots;
 
+    user.hotStreak = hotStreak;
     rating = ((bankShots + swishShots) * 1.5) / totalShots;
   }
 
@@ -81,6 +91,15 @@ class Session {
   @ignore
   int get getSwishShots {
     return swishShots;
+  }
+  @ignore
+    int get getHotStreak {
+    return hotStreak;
+  }
+
+    @ignore
+    int get getStreak {
+    return streak;
   }
 
   // Return total makes
