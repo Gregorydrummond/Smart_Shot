@@ -16,6 +16,7 @@ class Session {
   int swishShots = 0;
   int missedShots = 0;
   int hotStreak = 0;
+  @ignore
   int streak = 0;
   int airballShots = 0;
   double shotPercentage = 0;

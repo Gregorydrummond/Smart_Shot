@@ -226,7 +226,7 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
           const Text(
             'Performance Overview',
             style: TextStyle(
-              fontSize: 40,
+              fontSize: 30,
             ),
           ),
                   SfCartesianChart(
@@ -450,7 +450,7 @@ class _OverviewRecapGraphState extends State<OverviewRecapGraph> {
           const Text(
             'Lifetime Shots',
             style: TextStyle(
-              fontSize: 40,
+              fontSize: 30,
             ),
           ),
           SfCircularChart(
@@ -539,7 +539,7 @@ class _LastSessionState extends State<LastSession> {
           const Text(
             'Last Session',
             style: TextStyle(
-              fontSize: 40,
+              fontSize: 30,
             ),
           ),
           Row(

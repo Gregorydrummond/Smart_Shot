@@ -16,19 +16,20 @@ extension GetSessionCollection on Isar {
 const SessionSchema = CollectionSchema(
   name: r'Session',
   schema:
-      r'{"name":"Session","idName":"id","properties":[{"name":"airballShots","type":"Long"},{"name":"bankShots","type":"Long"},{"name":"duration","type":"Double"},{"name":"madeShots","type":"Long"},{"name":"missedShots","type":"Long"},{"name":"rating","type":"Double"},{"name":"shotPercentage","type":"Double"},{"name":"startTime","type":"Long"},{"name":"swishShots","type":"Long"},{"name":"totalShots","type":"Long"}],"indexes":[],"links":[]}',
+      r'{"name":"Session","idName":"id","properties":[{"name":"airballShots","type":"Long"},{"name":"bankShots","type":"Long"},{"name":"duration","type":"Double"},{"name":"hotStreak","type":"Long"},{"name":"madeShots","type":"Long"},{"name":"missedShots","type":"Long"},{"name":"rating","type":"Double"},{"name":"shotPercentage","type":"Double"},{"name":"startTime","type":"Long"},{"name":"swishShots","type":"Long"},{"name":"totalShots","type":"Long"}],"indexes":[],"links":[]}',
   idName: r'id',
   propertyIds: {
     r'airballShots': 0,
     r'bankShots': 1,
     r'duration': 2,
-    r'madeShots': 3,
-    r'missedShots': 4,
-    r'rating': 5,
-    r'shotPercentage': 6,
-    r'startTime': 7,
-    r'swishShots': 8,
-    r'totalShots': 9
+    r'hotStreak': 3,
+    r'madeShots': 4,
+    r'missedShots': 5,
+    r'rating': 6,
+    r'shotPercentage': 7,
+    r'startTime': 8,
+    r'swishShots': 9,
+    r'totalShots': 10
   },
   listProperties: {},
   indexIds: {},
@@ -81,13 +82,14 @@ void _sessionSerializeNative(
   writer.writeLong(offsets[0], object.airballShots);
   writer.writeLong(offsets[1], object.bankShots);
   writer.writeDouble(offsets[2], object.duration);
-  writer.writeLong(offsets[3], object.madeShots);
-  writer.writeLong(offsets[4], object.missedShots);
-  writer.writeDouble(offsets[5], object.rating);
-  writer.writeDouble(offsets[6], object.shotPercentage);
-  writer.writeDateTime(offsets[7], object.startTime);
-  writer.writeLong(offsets[8], object.swishShots);
-  writer.writeLong(offsets[9], object.totalShots);
+  writer.writeLong(offsets[3], object.hotStreak);
+  writer.writeLong(offsets[4], object.madeShots);
+  writer.writeLong(offsets[5], object.missedShots);
+  writer.writeDouble(offsets[6], object.rating);
+  writer.writeDouble(offsets[7], object.shotPercentage);
+  writer.writeDateTime(offsets[8], object.startTime);
+  writer.writeLong(offsets[9], object.swishShots);
+  writer.writeLong(offsets[10], object.totalShots);
 }
 
 Session _sessionDeserializeNative(IsarCollection<Session> collection, int id,
@@ -96,14 +98,15 @@ Session _sessionDeserializeNative(IsarCollection<Session> collection, int id,
   object.airballShots = reader.readLong(offsets[0]);
   object.bankShots = reader.readLong(offsets[1]);
   object.duration = reader.readDouble(offsets[2]);
+  object.hotStreak = reader.readLong(offsets[3]);
   object.id = id;
-  object.madeShots = reader.readLong(offsets[3]);
-  object.missedShots = reader.readLong(offsets[4]);
-  object.rating = reader.readDouble(offsets[5]);
-  object.shotPercentage = reader.readDouble(offsets[6]);
-  object.startTime = reader.readDateTime(offsets[7]);
-  object.swishShots = reader.readLong(offsets[8]);
-  object.totalShots = reader.readLong(offsets[9]);
+  object.madeShots = reader.readLong(offsets[4]);
+  object.missedShots = reader.readLong(offsets[5]);
+  object.rating = reader.readDouble(offsets[6]);
+  object.shotPercentage = reader.readDouble(offsets[7]);
+  object.startTime = reader.readDateTime(offsets[8]);
+  object.swishShots = reader.readLong(offsets[9]);
+  object.totalShots = reader.readLong(offsets[10]);
   return object;
 }
 
@@ -123,14 +126,16 @@ P _sessionDeserializePropNative<P>(
     case 4:
       return (reader.readLong(offset)) as P;
     case 5:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readDouble(offset)) as P;
     case 7:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTime(offset)) as P;
     case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Illegal propertyIndex');
@@ -151,7 +156,6 @@ Object _sessionSerializeWeb(
   IsarNative.jsObjectSet(jsObj, r'shotPercentage', object.shotPercentage);
   IsarNative.jsObjectSet(
       jsObj, r'startTime', object.startTime.toUtc().millisecondsSinceEpoch);
-  IsarNative.jsObjectSet(jsObj, r'streak', object.streak);
   IsarNative.jsObjectSet(jsObj, r'swishShots', object.swishShots);
   IsarNative.jsObjectSet(jsObj, r'totalShots', object.totalShots);
   return jsObj;
@@ -183,8 +187,6 @@ Session _sessionDeserializeWeb(
               isUtc: true)
           .toLocal()
       : DateTime.fromMillisecondsSinceEpoch(0);
-  object.streak = IsarNative.jsObjectGet(jsObj, r'streak') ??
-      (double.negativeInfinity as int);
   object.swishShots = IsarNative.jsObjectGet(jsObj, r'swishShots') ??
       (double.negativeInfinity as int);
   object.totalShots = IsarNative.jsObjectGet(jsObj, r'totalShots') ??
@@ -227,9 +229,6 @@ P _sessionDeserializePropWeb<P>(Object jsObj, String propertyName) {
                   isUtc: true)
               .toLocal()
           : DateTime.fromMillisecondsSinceEpoch(0)) as P;
-    case r'streak':
-      return (IsarNative.jsObjectGet(jsObj, r'streak') ??
-          (double.negativeInfinity as int)) as P;
     case r'swishShots':
       return (IsarNative.jsObjectGet(jsObj, r'swishShots') ??
           (double.negativeInfinity as int)) as P;
@@ -789,59 +788,6 @@ extension SessionQueryFilter
     });
   }
 
-  QueryBuilder<Session, Session, QAfterFilterCondition> streakEqualTo(
-      int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'streak',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Session, Session, QAfterFilterCondition> streakGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'streak',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Session, Session, QAfterFilterCondition> streakLessThan(
-    int value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'streak',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Session, Session, QAfterFilterCondition> streakBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'streak',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
   QueryBuilder<Session, Session, QAfterFilterCondition> swishShotsEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1061,18 +1007,6 @@ extension SessionQueryWhereSortBy on QueryBuilder<Session, Session, QSortBy> {
     });
   }
 
-  QueryBuilder<Session, Session, QAfterSortBy> sortByStreak() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'streak', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Session, Session, QAfterSortBy> sortByStreakDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'streak', Sort.desc);
-    });
-  }
-
   QueryBuilder<Session, Session, QAfterSortBy> sortBySwishShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'swishShots', Sort.asc);
@@ -1220,18 +1154,6 @@ extension SessionQueryWhereSortThenBy
     });
   }
 
-  QueryBuilder<Session, Session, QAfterSortBy> thenByStreak() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'streak', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Session, Session, QAfterSortBy> thenByStreakDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'streak', Sort.desc);
-    });
-  }
-
   QueryBuilder<Session, Session, QAfterSortBy> thenBySwishShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'swishShots', Sort.asc);
@@ -1313,12 +1235,6 @@ extension SessionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Session, Session, QDistinct> distinctByStreak() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'streak');
-    });
-  }
-
   QueryBuilder<Session, Session, QDistinct> distinctBySwishShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'swishShots');
@@ -1391,12 +1307,6 @@ extension SessionQueryProperty
   QueryBuilder<Session, DateTime, QQueryOperations> startTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startTime');
-    });
-  }
-
-  QueryBuilder<Session, int, QQueryOperations> streakProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'streak');
     });
   }
 
