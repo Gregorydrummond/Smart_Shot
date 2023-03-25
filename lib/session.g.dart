@@ -143,6 +143,7 @@ Object _sessionSerializeWeb(
   IsarNative.jsObjectSet(jsObj, r'airballShots', object.airballShots);
   IsarNative.jsObjectSet(jsObj, r'bankShots', object.bankShots);
   IsarNative.jsObjectSet(jsObj, r'duration', object.duration);
+  IsarNative.jsObjectSet(jsObj, r'hotStreak', object.hotStreak);
   IsarNative.jsObjectSet(jsObj, r'id', object.id);
   IsarNative.jsObjectSet(jsObj, r'madeShots', object.madeShots);
   IsarNative.jsObjectSet(jsObj, r'missedShots', object.missedShots);
@@ -150,6 +151,7 @@ Object _sessionSerializeWeb(
   IsarNative.jsObjectSet(jsObj, r'shotPercentage', object.shotPercentage);
   IsarNative.jsObjectSet(
       jsObj, r'startTime', object.startTime.toUtc().millisecondsSinceEpoch);
+  IsarNative.jsObjectSet(jsObj, r'streak', object.streak);
   IsarNative.jsObjectSet(jsObj, r'swishShots', object.swishShots);
   IsarNative.jsObjectSet(jsObj, r'totalShots', object.totalShots);
   return jsObj;
@@ -164,6 +166,8 @@ Session _sessionDeserializeWeb(
       (double.negativeInfinity as int);
   object.duration =
       IsarNative.jsObjectGet(jsObj, r'duration') ?? double.negativeInfinity;
+  object.hotStreak = IsarNative.jsObjectGet(jsObj, r'hotStreak') ??
+      (double.negativeInfinity as int);
   object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.madeShots = IsarNative.jsObjectGet(jsObj, r'madeShots') ??
       (double.negativeInfinity as int);
@@ -179,6 +183,8 @@ Session _sessionDeserializeWeb(
               isUtc: true)
           .toLocal()
       : DateTime.fromMillisecondsSinceEpoch(0);
+  object.streak = IsarNative.jsObjectGet(jsObj, r'streak') ??
+      (double.negativeInfinity as int);
   object.swishShots = IsarNative.jsObjectGet(jsObj, r'swishShots') ??
       (double.negativeInfinity as int);
   object.totalShots = IsarNative.jsObjectGet(jsObj, r'totalShots') ??
@@ -197,6 +203,9 @@ P _sessionDeserializePropWeb<P>(Object jsObj, String propertyName) {
     case r'duration':
       return (IsarNative.jsObjectGet(jsObj, r'duration') ??
           double.negativeInfinity) as P;
+    case r'hotStreak':
+      return (IsarNative.jsObjectGet(jsObj, r'hotStreak') ??
+          (double.negativeInfinity as int)) as P;
     case r'id':
       return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'madeShots':
@@ -218,6 +227,9 @@ P _sessionDeserializePropWeb<P>(Object jsObj, String propertyName) {
                   isUtc: true)
               .toLocal()
           : DateTime.fromMillisecondsSinceEpoch(0)) as P;
+    case r'streak':
+      return (IsarNative.jsObjectGet(jsObj, r'streak') ??
+          (double.negativeInfinity as int)) as P;
     case r'swishShots':
       return (IsarNative.jsObjectGet(jsObj, r'swishShots') ??
           (double.negativeInfinity as int)) as P;
@@ -443,6 +455,59 @@ extension SessionQueryFilter
         includeLower: false,
         upper: upper,
         includeUpper: false,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hotStreak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hotStreak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hotStreak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hotStreak',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -724,6 +789,59 @@ extension SessionQueryFilter
     });
   }
 
+  QueryBuilder<Session, Session, QAfterFilterCondition> streakEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'streak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> streakGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'streak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> streakLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'streak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> streakBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'streak',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterFilterCondition> swishShotsEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -871,6 +989,18 @@ extension SessionQueryWhereSortBy on QueryBuilder<Session, Session, QSortBy> {
     });
   }
 
+  QueryBuilder<Session, Session, QAfterSortBy> sortByHotStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByHotStreakDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.desc);
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterSortBy> sortByMadeShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'madeShots', Sort.asc);
@@ -928,6 +1058,18 @@ extension SessionQueryWhereSortBy on QueryBuilder<Session, Session, QSortBy> {
   QueryBuilder<Session, Session, QAfterSortBy> sortByStartTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'streak', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByStreakDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'streak', Sort.desc);
     });
   }
 
@@ -991,6 +1133,18 @@ extension SessionQueryWhereSortThenBy
   QueryBuilder<Session, Session, QAfterSortBy> thenByDurationDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'duration', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByHotStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByHotStreakDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.desc);
     });
   }
 
@@ -1066,6 +1220,18 @@ extension SessionQueryWhereSortThenBy
     });
   }
 
+  QueryBuilder<Session, Session, QAfterSortBy> thenByStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'streak', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByStreakDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'streak', Sort.desc);
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterSortBy> thenBySwishShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'swishShots', Sort.asc);
@@ -1111,6 +1277,12 @@ extension SessionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Session, Session, QDistinct> distinctByHotStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hotStreak');
+    });
+  }
+
   QueryBuilder<Session, Session, QDistinct> distinctByMadeShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'madeShots');
@@ -1138,6 +1310,12 @@ extension SessionQueryWhereDistinct
   QueryBuilder<Session, Session, QDistinct> distinctByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startTime');
+    });
+  }
+
+  QueryBuilder<Session, Session, QDistinct> distinctByStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'streak');
     });
   }
 
@@ -1180,6 +1358,12 @@ extension SessionQueryProperty
     });
   }
 
+  QueryBuilder<Session, int, QQueryOperations> hotStreakProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hotStreak');
+    });
+  }
+
   QueryBuilder<Session, int, QQueryOperations> madeShotsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'madeShots');
@@ -1207,6 +1391,12 @@ extension SessionQueryProperty
   QueryBuilder<Session, DateTime, QQueryOperations> startTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startTime');
+    });
+  }
+
+  QueryBuilder<Session, int, QQueryOperations> streakProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'streak');
     });
   }
 

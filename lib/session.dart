@@ -15,6 +15,8 @@ class Session {
   int bankShots = 0;
   int swishShots = 0;
   int missedShots = 0;
+  int hotStreak = 0;
+  int streak = 0;
   int airballShots = 0;
   double shotPercentage = 0;
   late DateTime startTime;
@@ -33,19 +35,26 @@ class Session {
       case ShotType.swish:
         madeShots++;
         swishShots++;
+        streak++;
         break;
       case ShotType.bank:
         bankShots++;
         madeShots++;
+        streak++;
         break;
       case ShotType.miss:
         missedShots++;
+        streak = 0;
         break;
       case ShotType.airball:
         missedShots++;
         airballShots++;
         break;
       default:
+    }
+
+    if(streak > hotStreak){
+      hotStreak = streak;
     }
 
     // Add to total shots
@@ -65,7 +74,6 @@ class Session {
     // Get duration
     diff = endTime.difference(startTime);
     duration = diff.inSeconds / 60.0;
-
     rating = ((bankShots + swishShots) * 1.5) / totalShots;
   }
 
@@ -78,6 +86,15 @@ class Session {
   @ignore
   int get getSwishShots {
     return swishShots;
+  }
+  @ignore
+    int get getHotStreak {
+    return hotStreak;
+  }
+
+    @ignore
+    int get getStreak {
+    return streak;
   }
 
   @ignore
