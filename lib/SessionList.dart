@@ -87,25 +87,40 @@ class _CalendarState extends State<Calendar> {
   late AnimationController _animationController;
   List<Session> newList = [];
 
+  final service = IsarService();
+  late Future<List<Session>> sessionList; // = [] as Future<List<Session>>;
+  ListView listView = ListView();
+
   @override
   void initState() {
     super.initState();
 
-    sessions = widget.sessions;
+    //sessions = widget.sessions;
     //print("Session: $sessions");
     focusedDay = DateTime.now();
     currentDay = DateTime.now();
 
     // Map sessions for calendar
-    mapSessions();
+    //mapSessions();
 
     // Events for today
     selectedEvents = eventsMap[focusedDay] ?? [];
   }
 
   // Map sessions for calendar
-  void mapSessions() {
+  void mapSessions(List<Session> sessions) async {
+    // Query sessions for the month
+    // sessionList = service.getSessionsWithinDates(
+    //     DateTime.utc(focusedDay.year, focusedDay.month, 1),
+    //     DateTime(focusedDay.year, (focusedDay.month + 1 % 13))
+    //         .subtract(const Duration(days: 1)));
+
+    // sessions = await sessionList;
+
+    //listView = buildEventList(selectedEvents) as ListView;
+
     print("Session: $sessions");
+    // Put year in key
     for (var session in sessions) {
       String date = "${session.startTime.month}/${session.startTime.day}";
       eventsList = eventsMap[date];
@@ -117,6 +132,8 @@ class _CalendarState extends State<Calendar> {
         eventsList!.add(session);
       }
     }
+    // selectedEvents = eventsMap.isNotEmpty ? eventsMap.entries.last.value : [];
+
     // Don't understand why the map function isn't working
     // sessions.map((session) => {
     //       print("Mapping sessions..."),
@@ -135,6 +152,39 @@ class _CalendarState extends State<Calendar> {
       selectedEvents = events;
     });
   }
+
+  // // Event List (Future builder??)
+  // Widget buildEventList(List<Session> selectedEvents) {
+  //   return FutureBuilder(
+  //       future: sessionList,
+  //       builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+  //         if (snapshot.hasData) {
+  //           return ListView(
+  //             children: snapshot.data!
+  //                 .map((event) => Container(
+  //                       decoration: BoxDecoration(
+  //                         color: Colors.orangeAccent,
+  //                         border: Border.all(width: 0.5),
+  //                         borderRadius: BorderRadius.circular(10),
+  //                       ),
+  //                       margin: const EdgeInsets.symmetric(
+  //                         horizontal: 2.0,
+  //                         vertical: 1.0,
+  //                       ),
+  //                       child: ListTile(
+  //                         title: Text(event.id.toString()),
+  //                         onTap: () => {
+  //                           print(event.id.toString()),
+  //                         },
+  //                       ),
+  //                     ))
+  //                 .toList(),
+  //           );
+  //         } else {
+  //           return Container();
+  //         }
+  //       });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -176,41 +226,93 @@ class _CalendarState extends State<Calendar> {
             }
           },
           onPageChanged: (focusedDay) {
-            this.focusedDay = focusedDay;
+            setState(() {
+              this.focusedDay = focusedDay;
+              // eventsMap = {};
+              // mapSessions();
+
+              // selectedEvents =
+              //     eventsMap.isNotEmpty ? eventsMap.entries.last.value : [];
+              //print("Selected Events: $selectedEvents");
+              //listView = buildEventList(selectedEvents) as ListView;
+            });
+
+            print("Day: ${this.focusedDay}");
           },
         ),
         Expanded(
-          child: buildEventList(selectedEvents),
+          child: buildEventList(),
+          // Set selected events
+          // child: buildEventList(selectedEvents),
         ),
       ],
     );
   }
+
+  // Event List (Future builder??)
+  Widget buildEventList() {
+    return FutureBuilder<List<Session>>(
+        future: service.getSessionsWithinDates(
+            DateTime.utc(focusedDay.year, focusedDay.month, 1),
+            DateTime(focusedDay.year, (focusedDay.month + 1 % 13))),
+        builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+          if (snapshot.hasData) {
+            eventsMap = {};
+            mapSessions(snapshot.data!);
+            // Get the last day in the event map
+            print("Selected Events: $selectedEvents");
+            return ListView(
+              children: selectedEvents
+                  .map((session) => Container(
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent,
+                          border: Border.all(width: 0.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 2.0,
+                          vertical: 1.0,
+                        ),
+                        child: ListTile(
+                          title: Text(session.id.toString()),
+                          onTap: () => {
+                            print(session.id.toString()),
+                          },
+                        ),
+                      ))
+                  .toList(),
+            );
+          } else {
+            return Container();
+          }
+        });
+  }
 }
 
-// Event List
-Widget buildEventList(List<Session> selectedEvents) {
-  return ListView(
-    children: selectedEvents
-        .map((event) => Container(
-              decoration: BoxDecoration(
-                color: Colors.orangeAccent,
-                border: Border.all(width: 0.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              margin: const EdgeInsets.symmetric(
-                horizontal: 2.0,
-                vertical: 1.0,
-              ),
-              child: ListTile(
-                title: Text(event.id.toString()),
-                onTap: () => {
-                  print(event.id.toString()),
-                },
-              ),
-            ))
-        .toList(),
-  );
-}
+// // Event List (Future builder??)
+// Widget buildEventList(List<Session> selectedEvents) {
+//   return ListView(
+//     children: selectedEvents
+//         .map((event) => Container(
+//               decoration: BoxDecoration(
+//                 color: Colors.orangeAccent,
+//                 border: Border.all(width: 0.5),
+//                 borderRadius: BorderRadius.circular(10),
+//               ),
+//               margin: const EdgeInsets.symmetric(
+//                 horizontal: 2.0,
+//                 vertical: 1.0,
+//               ),
+//               child: ListTile(
+//                 title: Text(event.id.toString()),
+//                 onTap: () => {
+//                   print(event.id.toString()),
+//                 },
+//               ),
+//             ))
+//         .toList(),
+//   );
+// }
 
 Widget sessionListView(
         User user, int count, IsarService service, Function update) =>

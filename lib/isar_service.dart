@@ -21,6 +21,17 @@ class IsarService {
     return await isar.sessions.where().findAll();
   }
 
+  // Sessions between dates
+  Future<List<Session>> getSessionsWithinDates(
+      DateTime startDate, DateTime endDate) async {
+    final isar = await db;
+    return await isar.sessions
+        .filter()
+        .startTimeBetween(startDate, endDate,
+            includeLower: true, includeUpper: true)
+        .findAll();
+  }
+
   //listen to sessions to show actual information
   Stream<List<Session>> listenToSessions() async* {
     final isar = await db;

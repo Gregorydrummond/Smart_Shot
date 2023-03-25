@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -105,11 +106,12 @@ class _MainPageState extends State<MainPage> {
   void initSessions() async {
     sessions = await service.getAllSessions().then((sessions) {
       setState(() {
-        this.sessions = sessions;
+        //this.sessions = sessions;
         count = this.sessions.length;
       });
 
-      throw Error();
+      return sessions;
+      // throw Error();
     });
   }
 
