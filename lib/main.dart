@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shot/ConnectDevice.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -64,8 +66,8 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final service = IsarService();
-  static final User user = User('Lebron');
-  // Indices and corresponding widget/screen for the bottom nav bar
+  static User user = User(null);
+  bool sessionLive = false;
   int currentIndex = 0;
   int count = 0;
   List<Session> sessions = [];
@@ -73,13 +75,8 @@ class _MainPageState extends State<MainPage> {
   Widget selectPage() {
     List<Widget> screens = [
       Home(user: user),
-
-      //start session page
-      SessionPage(user: user, cameras: _cameras, end: endSession),
-
-      // Sessions List page
+      SessionPage(cameras: _cameras, end: endSession, start: startSession),
       SessionList(
-        user: user,
         service: service,
         sessions: sessions,
         count: count,
@@ -89,34 +86,109 @@ class _MainPageState extends State<MainPage> {
     return screens[currentIndex];
   }
 
+  startSession() {
+    sessionLive = true;
+  }
+
   endSession() {
     setState(() {
+      sessionLive = false;
       currentIndex = 0;
     });
   }
 
-  // For future use
   @override
   void initState() {
     super.initState();
-
     initSessions();
+    initUser();
   }
 
   void initSessions() async {
-    sessions = await service.getAllSessions().then((sessions) {
-      setState(() {
-        //this.sessions = sessions;
-        count = this.sessions.length;
-      });
+    sessions = await service.getAllSessions();
+  }
 
-      return sessions;
-      // throw Error();
+  void initUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      String? name = prefs.getString('name');
+      if (name != null) {
+        user = User(name);
+      } else {
+        user = User("");
+      }
+    });
+  }
+
+  void createUser(String name) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', name);
+    setState(() {
+      user = User(name);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (user.name == '') {
+      TextEditingController controller = TextEditingController();
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Please Provide a Name",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 20.0),
+                  child: TextField(
+                    controller: controller,
+                    style: TextStyle(fontSize: 20),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Name',
+                    ),
+                  ),
+                ),
+                TextButton(
+                    style: ButtonStyle(
+                        elevation: MaterialStatePropertyAll<double>(3.0),
+                        backgroundColor: MaterialStatePropertyAll<Color>(
+                            Colors.orangeAccent)),
+                    onPressed: () {
+                      setState(() {
+                        if (controller.value.text.trim() != '') {
+                          createUser(controller.value.text);
+                        }
+                      });
+                    },
+                    child: Text(
+                      'Submit',
+                      style: TextStyle(color: Colors.black, fontSize: 20),
+                    ))
+              ],
+            ),
+          ),
+        ),
+      );
+    } else if (user.name == null) {
+      return Scaffold(
+        body: Center(
+          child: Icon(
+            Icons.sports_basketball,
+            size: 100,
+            color: Colors.orangeAccent,
+          ),
+        ),
+      );
+    }
     return Scaffold(
       body: selectPage(),
       bottomNavigationBar: BottomNavigationBar(
@@ -137,8 +209,10 @@ class _MainPageState extends State<MainPage> {
         ],
         onTap: (index) {
           setState(() {
-            currentIndex = index;
-            initSessions();
+            if (currentIndex != 1 || !sessionLive) {
+              currentIndex = index;
+              initSessions();
+            }
           });
         },
       ),

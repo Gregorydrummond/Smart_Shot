@@ -4,7 +4,7 @@ import 'package:isar/isar.dart';
 
 part 'session.g.dart';
 
-enum ShotType { swish, bank, miss }
+enum ShotType { swish, bank, miss, airball }
 
 @Collection()
 class Session {
@@ -15,6 +15,10 @@ class Session {
   int bankShots = 0;
   int swishShots = 0;
   int missedShots = 0;
+  int hotStreak = 0;
+  @ignore
+  int streak = 0;
+  int airballShots = 0;
   double shotPercentage = 0;
   late DateTime startTime;
   double duration = 0.0;
@@ -32,15 +36,26 @@ class Session {
       case ShotType.swish:
         madeShots++;
         swishShots++;
+        streak++;
         break;
       case ShotType.bank:
         bankShots++;
         madeShots++;
+        streak++;
         break;
       case ShotType.miss:
         missedShots++;
+        streak = 0;
+        break;
+      case ShotType.airball:
+        missedShots++;
+        airballShots++;
         break;
       default:
+    }
+
+    if(streak > hotStreak){
+      hotStreak = streak;
     }
 
     // Add to total shots
@@ -52,23 +67,14 @@ class Session {
   }
 
   // End session
-  void endSession(User user) {
+  void endSession() {
     // End time
     DateTime endTime = DateTime.now();
     Duration diff;
 
     // Get duration
-    //duration = startTime.difference(endTime);
     diff = endTime.difference(startTime);
     duration = diff.inSeconds / 60.0;
-
-    // Update user data
-    user.madeShots += madeShots;
-    user.missedShots += missedShots;
-    user.totalShots += totalShots;
-    user.bankShots += bankShots;
-    user.swishShots += swishShots;
-
     rating = ((bankShots + swishShots) * 1.5) / totalShots;
   }
 
@@ -81,6 +87,20 @@ class Session {
   @ignore
   int get getSwishShots {
     return swishShots;
+  }
+  @ignore
+    int get getHotStreak {
+    return hotStreak;
+  }
+
+    @ignore
+    int get getStreak {
+    return streak;
+  }
+
+  @ignore
+  int get getAirballShots {
+    return airballShots;
   }
 
   // Return total makes

@@ -16,18 +16,20 @@ extension GetSessionCollection on Isar {
 const SessionSchema = CollectionSchema(
   name: r'Session',
   schema:
-      r'{"name":"Session","idName":"id","properties":[{"name":"bankShots","type":"Long"},{"name":"duration","type":"Double"},{"name":"madeShots","type":"Long"},{"name":"missedShots","type":"Long"},{"name":"rating","type":"Double"},{"name":"shotPercentage","type":"Double"},{"name":"startTime","type":"Long"},{"name":"swishShots","type":"Long"},{"name":"totalShots","type":"Long"}],"indexes":[],"links":[]}',
+      r'{"name":"Session","idName":"id","properties":[{"name":"airballShots","type":"Long"},{"name":"bankShots","type":"Long"},{"name":"duration","type":"Double"},{"name":"hotStreak","type":"Long"},{"name":"madeShots","type":"Long"},{"name":"missedShots","type":"Long"},{"name":"rating","type":"Double"},{"name":"shotPercentage","type":"Double"},{"name":"startTime","type":"Long"},{"name":"swishShots","type":"Long"},{"name":"totalShots","type":"Long"}],"indexes":[],"links":[]}',
   idName: r'id',
   propertyIds: {
-    r'bankShots': 0,
-    r'duration': 1,
-    r'madeShots': 2,
-    r'missedShots': 3,
-    r'rating': 4,
-    r'shotPercentage': 5,
-    r'startTime': 6,
-    r'swishShots': 7,
-    r'totalShots': 8
+    r'airballShots': 0,
+    r'bankShots': 1,
+    r'duration': 2,
+    r'hotStreak': 3,
+    r'madeShots': 4,
+    r'missedShots': 5,
+    r'rating': 6,
+    r'shotPercentage': 7,
+    r'startTime': 8,
+    r'swishShots': 9,
+    r'totalShots': 10
   },
   listProperties: {},
   indexIds: {},
@@ -77,30 +79,34 @@ void _sessionSerializeNative(
   final buffer = IsarNative.bufAsBytes(cObj.buffer, size);
   final writer = IsarBinaryWriter(buffer, staticSize);
   writer.writeHeader();
-  writer.writeLong(offsets[0], object.bankShots);
-  writer.writeDouble(offsets[1], object.duration);
-  writer.writeLong(offsets[2], object.madeShots);
-  writer.writeLong(offsets[3], object.missedShots);
-  writer.writeDouble(offsets[4], object.rating);
-  writer.writeDouble(offsets[5], object.shotPercentage);
-  writer.writeDateTime(offsets[6], object.startTime);
-  writer.writeLong(offsets[7], object.swishShots);
-  writer.writeLong(offsets[8], object.totalShots);
+  writer.writeLong(offsets[0], object.airballShots);
+  writer.writeLong(offsets[1], object.bankShots);
+  writer.writeDouble(offsets[2], object.duration);
+  writer.writeLong(offsets[3], object.hotStreak);
+  writer.writeLong(offsets[4], object.madeShots);
+  writer.writeLong(offsets[5], object.missedShots);
+  writer.writeDouble(offsets[6], object.rating);
+  writer.writeDouble(offsets[7], object.shotPercentage);
+  writer.writeDateTime(offsets[8], object.startTime);
+  writer.writeLong(offsets[9], object.swishShots);
+  writer.writeLong(offsets[10], object.totalShots);
 }
 
 Session _sessionDeserializeNative(IsarCollection<Session> collection, int id,
     IsarBinaryReader reader, List<int> offsets) {
   final object = Session();
-  object.bankShots = reader.readLong(offsets[0]);
-  object.duration = reader.readDouble(offsets[1]);
+  object.airballShots = reader.readLong(offsets[0]);
+  object.bankShots = reader.readLong(offsets[1]);
+  object.duration = reader.readDouble(offsets[2]);
+  object.hotStreak = reader.readLong(offsets[3]);
   object.id = id;
-  object.madeShots = reader.readLong(offsets[2]);
-  object.missedShots = reader.readLong(offsets[3]);
-  object.rating = reader.readDouble(offsets[4]);
-  object.shotPercentage = reader.readDouble(offsets[5]);
-  object.startTime = reader.readDateTime(offsets[6]);
-  object.swishShots = reader.readLong(offsets[7]);
-  object.totalShots = reader.readLong(offsets[8]);
+  object.madeShots = reader.readLong(offsets[4]);
+  object.missedShots = reader.readLong(offsets[5]);
+  object.rating = reader.readDouble(offsets[6]);
+  object.shotPercentage = reader.readDouble(offsets[7]);
+  object.startTime = reader.readDateTime(offsets[8]);
+  object.swishShots = reader.readLong(offsets[9]);
+  object.totalShots = reader.readLong(offsets[10]);
   return object;
 }
 
@@ -112,20 +118,24 @@ P _sessionDeserializePropNative<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readDouble(offset)) as P;
-    case 2:
       return (reader.readLong(offset)) as P;
+    case 2:
+      return (reader.readDouble(offset)) as P;
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readDouble(offset)) as P;
-    case 5:
-      return (reader.readDouble(offset)) as P;
-    case 6:
-      return (reader.readDateTime(offset)) as P;
-    case 7:
       return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readLong(offset)) as P;
+    case 6:
+      return (reader.readDouble(offset)) as P;
+    case 7:
+      return (reader.readDouble(offset)) as P;
     case 8:
+      return (reader.readDateTime(offset)) as P;
+    case 9:
+      return (reader.readLong(offset)) as P;
+    case 10:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Illegal propertyIndex');
@@ -135,8 +145,10 @@ P _sessionDeserializePropNative<P>(
 Object _sessionSerializeWeb(
     IsarCollection<Session> collection, Session object) {
   final jsObj = IsarNative.newJsObject();
+  IsarNative.jsObjectSet(jsObj, r'airballShots', object.airballShots);
   IsarNative.jsObjectSet(jsObj, r'bankShots', object.bankShots);
   IsarNative.jsObjectSet(jsObj, r'duration', object.duration);
+  IsarNative.jsObjectSet(jsObj, r'hotStreak', object.hotStreak);
   IsarNative.jsObjectSet(jsObj, r'id', object.id);
   IsarNative.jsObjectSet(jsObj, r'madeShots', object.madeShots);
   IsarNative.jsObjectSet(jsObj, r'missedShots', object.missedShots);
@@ -152,10 +164,14 @@ Object _sessionSerializeWeb(
 Session _sessionDeserializeWeb(
     IsarCollection<Session> collection, Object jsObj) {
   final object = Session();
+  object.airballShots = IsarNative.jsObjectGet(jsObj, r'airballShots') ??
+      (double.negativeInfinity as int);
   object.bankShots = IsarNative.jsObjectGet(jsObj, r'bankShots') ??
       (double.negativeInfinity as int);
   object.duration =
       IsarNative.jsObjectGet(jsObj, r'duration') ?? double.negativeInfinity;
+  object.hotStreak = IsarNative.jsObjectGet(jsObj, r'hotStreak') ??
+      (double.negativeInfinity as int);
   object.id = IsarNative.jsObjectGet(jsObj, r'id');
   object.madeShots = IsarNative.jsObjectGet(jsObj, r'madeShots') ??
       (double.negativeInfinity as int);
@@ -180,12 +196,18 @@ Session _sessionDeserializeWeb(
 
 P _sessionDeserializePropWeb<P>(Object jsObj, String propertyName) {
   switch (propertyName) {
+    case r'airballShots':
+      return (IsarNative.jsObjectGet(jsObj, r'airballShots') ??
+          (double.negativeInfinity as int)) as P;
     case r'bankShots':
       return (IsarNative.jsObjectGet(jsObj, r'bankShots') ??
           (double.negativeInfinity as int)) as P;
     case r'duration':
       return (IsarNative.jsObjectGet(jsObj, r'duration') ??
           double.negativeInfinity) as P;
+    case r'hotStreak':
+      return (IsarNative.jsObjectGet(jsObj, r'hotStreak') ??
+          (double.negativeInfinity as int)) as P;
     case r'id':
       return (IsarNative.jsObjectGet(jsObj, r'id')) as P;
     case r'madeShots':
@@ -297,6 +319,59 @@ extension SessionQueryWhere on QueryBuilder<Session, Session, QWhereClause> {
 
 extension SessionQueryFilter
     on QueryBuilder<Session, Session, QFilterCondition> {
+  QueryBuilder<Session, Session, QAfterFilterCondition> airballShotsEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'airballShots',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> airballShotsGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'airballShots',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> airballShotsLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'airballShots',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> airballShotsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'airballShots',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterFilterCondition> bankShotsEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -379,6 +454,59 @@ extension SessionQueryFilter
         includeLower: false,
         upper: upper,
         includeUpper: false,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hotStreak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hotStreak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hotStreak',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterFilterCondition> hotStreakBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hotStreak',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -771,6 +899,18 @@ extension SessionQueryLinks
     on QueryBuilder<Session, Session, QFilterCondition> {}
 
 extension SessionQueryWhereSortBy on QueryBuilder<Session, Session, QSortBy> {
+  QueryBuilder<Session, Session, QAfterSortBy> sortByAirballShots() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'airballShots', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByAirballShotsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'airballShots', Sort.desc);
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterSortBy> sortByBankShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bankShots', Sort.asc);
@@ -792,6 +932,18 @@ extension SessionQueryWhereSortBy on QueryBuilder<Session, Session, QSortBy> {
   QueryBuilder<Session, Session, QAfterSortBy> sortByDurationDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'duration', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByHotStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> sortByHotStreakDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.desc);
     });
   }
 
@@ -882,6 +1034,18 @@ extension SessionQueryWhereSortBy on QueryBuilder<Session, Session, QSortBy> {
 
 extension SessionQueryWhereSortThenBy
     on QueryBuilder<Session, Session, QSortThenBy> {
+  QueryBuilder<Session, Session, QAfterSortBy> thenByAirballShots() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'airballShots', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByAirballShotsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'airballShots', Sort.desc);
+    });
+  }
+
   QueryBuilder<Session, Session, QAfterSortBy> thenByBankShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'bankShots', Sort.asc);
@@ -903,6 +1067,18 @@ extension SessionQueryWhereSortThenBy
   QueryBuilder<Session, Session, QAfterSortBy> thenByDurationDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'duration', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByHotStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Session, Session, QAfterSortBy> thenByHotStreakDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hotStreak', Sort.desc);
     });
   }
 
@@ -1005,6 +1181,12 @@ extension SessionQueryWhereSortThenBy
 
 extension SessionQueryWhereDistinct
     on QueryBuilder<Session, Session, QDistinct> {
+  QueryBuilder<Session, Session, QDistinct> distinctByAirballShots() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'airballShots');
+    });
+  }
+
   QueryBuilder<Session, Session, QDistinct> distinctByBankShots() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'bankShots');
@@ -1014,6 +1196,12 @@ extension SessionQueryWhereDistinct
   QueryBuilder<Session, Session, QDistinct> distinctByDuration() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'duration');
+    });
+  }
+
+  QueryBuilder<Session, Session, QDistinct> distinctByHotStreak() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hotStreak');
     });
   }
 
@@ -1068,6 +1256,12 @@ extension SessionQueryProperty
     });
   }
 
+  QueryBuilder<Session, int, QQueryOperations> airballShotsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'airballShots');
+    });
+  }
+
   QueryBuilder<Session, int, QQueryOperations> bankShotsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'bankShots');
@@ -1077,6 +1271,12 @@ extension SessionQueryProperty
   QueryBuilder<Session, double, QQueryOperations> durationProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'duration');
+    });
+  }
+
+  QueryBuilder<Session, int, QQueryOperations> hotStreakProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'hotStreak');
     });
   }
 

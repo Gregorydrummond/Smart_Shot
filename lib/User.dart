@@ -5,12 +5,13 @@ class User {
   int userScore = 0;
   double userTime = 0;
   double rating = 0;
-  String name;
+  String? name;
   int madeShots = 0;
   int missedShots = 0;
   int swishShots = 0;
   int totalShots = 0;
   int bankShots = 0;
+  int hotStreak = 0;
   User(this.name);
 
   void calculateStats() {
