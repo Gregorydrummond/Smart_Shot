@@ -242,7 +242,6 @@ class _CalendarState extends State<Calendar> {
             child: ListView.builder(
                 itemCount: selectedEvents.length,
                 itemBuilder: (context, index) {
-                  print("Length: ${selectedEvents.length}");
                   return Container(
                     decoration: BoxDecoration(
                       color: Colors.orangeAccent,
@@ -256,7 +255,13 @@ class _CalendarState extends State<Calendar> {
                     height: 50,
                     child: ListTile(
                       title: Text(selectedEvents[index].id.toString()),
-                      onTap: () => {},
+                      onTap: () => {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    SessionDetails(selectedEvents[index])))
+                      },
                     ),
                   );
                 })),
