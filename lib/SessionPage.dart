@@ -201,6 +201,14 @@ class _SessionPageState extends State<SessionPage> {
     });
   }
 
+  connectToast({required String message}) {
+    setState(() {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+      ));
+    });
+  }
+
   // Unsubscribe from random characteristic
   Future<void> unsubscribeFromCharacteristic() async {
     ConnectDevice.flutterReactiveBLEPlatform.stopSubscribingToNotifications(
@@ -230,7 +238,7 @@ class _SessionPageState extends State<SessionPage> {
         title: const Text('Live Session'),
         backgroundColor: Colors.orangeAccent,
       ),
-      body: sessionStarted ? liveFeedScreen() : startSessionScreen(),
+      body: ConnectDevice.connected ? liveFeedScreen() : ConnectDevice(onConnection: connectToast),
     );
   }
 }

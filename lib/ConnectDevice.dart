@@ -9,7 +9,7 @@ class ConnectDevice extends StatefulWidget {
   ConnectDevice({super.key, required this.onConnection});
   static bool _foundDeviceWaitingToConnect = false;
   static bool _scanStarted = false;
-  static bool _connected = false;
+  static bool connected = false;
 
   // Bluetooth
   static late DiscoveredDevice smartShotDevice;
@@ -166,7 +166,7 @@ class _ConnectDeviceState extends State<ConnectDevice> {
             ConnectDevice._scanStarted = false;
             // Go back to the home screen
             Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            // Navigator.of(context).pop();
             widget.onConnection(message: "SmartShot device not found");
           }
         }
@@ -230,12 +230,12 @@ class _ConnectDeviceState extends State<ConnectDevice> {
 
             // Switched the order of these (return if it looks weird)
             // Pop the loading animation and the connect to device screen
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            // Navigator.of(context).pop();
+            // Navigator.of(context).pop();
 
             setState(() {
               ConnectDevice._foundDeviceWaitingToConnect = false;
-              ConnectDevice._connected = true;
+              ConnectDevice.connected = true;
               widget.onConnection(message: "SmartShot Device Connected!");
             });
 
@@ -317,12 +317,6 @@ class _ConnectDeviceState extends State<ConnectDevice> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
-        title: const Text('Live Session'),
-      ),
-      body: startScan(),
-    );
+    return startScan();
   }
 }
