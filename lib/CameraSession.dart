@@ -6,7 +6,8 @@ import 'dart:async';
 class CameraSession extends StatefulWidget {
   final List<CameraDescription> cameras;
   final Function ballDetected;
-  const CameraSession({super.key, required this.cameras, required this.ballDetected});
+  final Function startSession;
+  const CameraSession({super.key, required this.cameras, required this.ballDetected, required this.startSession});
 
   @override
   State<CameraSession> createState() => _CameraSessionState();
@@ -75,6 +76,7 @@ class _CameraSessionState extends State<CameraSession> {
     controller.startImageStream((image) async {
       await _processImage(width: image.width, height: image.height, bytes: image.planes[0].bytes);
     });
+    widget.startSession();
   }
 
   List<Widget> buildWidgets() {

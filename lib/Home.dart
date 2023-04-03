@@ -47,19 +47,6 @@ class _HomeState extends State<Home> {
                 title: const Text(
                   'Home',
                 ),
-                actions: <Widget>[
-                  IconButton(
-                    icon: const Icon(Icons.bluetooth),
-                    tooltip: "Connect to SmartShot device",
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => ConnectDevice(
-                          onConnection: showConnectedToast,
-                        ),
-                      ));
-                    },
-                  )
-                ],
               ),
               body: SingleChildScrollView(
                 child: Column(

@@ -230,7 +230,7 @@ class _ConnectDeviceState extends State<ConnectDevice> {
 
             // Switched the order of these (return if it looks weird)
             // Pop the loading animation and the connect to device screen
-            // Navigator.of(context).pop();
+            Navigator.of(context).pop();
             // Navigator.of(context).pop();
 
             setState(() {
