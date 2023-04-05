@@ -5,7 +5,7 @@ class User {
   int userScore = 0;
   double userTime = 0;
   double rating = 0;
-  String name;
+  String? name;
   int madeShots = 0;
   int missedShots = 0;
   int swishShots = 0;
