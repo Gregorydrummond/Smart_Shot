@@ -97,6 +97,7 @@ class _HomeState extends State<Home> {
                     UserCard(widget.user, snapshot.data!),
                     WeeklyRecapGraph(snapshot.data!),
                     RatingRecapGraph(widget.user, snapshot.data!),
+                    SwishBankGraph(widget.user, snapshot.data!),
                     OverviewRecapGraph(widget.user, snapshot.data!),
                     LastSession(snapshot.data!),
                   ],
@@ -346,16 +347,29 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
                 yValueMapper: (SessionData sessionData, _) => sessionData.rating,
                 enableTooltip: true,
                 pointColorMapper: (SessionData sessionData, _) => sessionData.color,
+                
               ),
             ],
             primaryXAxis: DateTimeAxis(
               intervalType: DateTimeIntervalType.days,
+               title: AxisTitle(
+                
+                text: 'Time'
+              ),
+               borderWidth: 1.0,
+               borderColor: Colors.orangeAccent,
               //interval: 0.5,
               //dateFormat: DateFormat.MMMM(),
               rangePadding: ChartRangePadding.additional
             // zoomFactor: .5
             ),
             primaryYAxis: NumericAxis(
+               title: AxisTitle(
+                alignment: ChartAlignment.center,
+                text: 'Shoooting Percentage'
+              ),
+               borderWidth: 1.0,
+               borderColor: Colors.orangeAccent,
               labelFormat: '{value}%',
               maximum: 105
                ),
@@ -411,7 +425,7 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
     chartData = getChartData(widget.sessions);
     _tooltipBehavior =TooltipBehavior(enable: true);
 
-       widget.user.sessions = widget.sessions;
+    widget.user.sessions = widget.sessions;
     widget.user.calculateStats();
     // Get data
     userRating = widget.user.getRating;
@@ -438,12 +452,12 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
       if (count != 0){
         rating =  double.parse(
         ((((bank + session.bankShots) + (swish + session.swishShots) * 1.5)) / (total + session.totalShots).toDouble())
-            .toStringAsFixed(2)) * 100;
+            .toStringAsFixed(2)) ;
       }
-      else {rating = session.getSessionRating *100;}
+      else {rating = session.getSessionRating ;}
 
       count++;
-      chartData.add(SessionData1(date, (rating).round(), Colors.blue));
+      chartData.add(SessionData1(count.toDouble(), (rating), Colors.orangeAccent));
       bank += session.bankShots;
       swish += session.swishShots;
       total += session.totalShots;
@@ -468,26 +482,48 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
             isTransposed: false,
             
             series: <ChartSeries>[
-              LineSeries<SessionData1, DateTime>(
+              LineSeries<SessionData1, double>(
+                 color: Colors.orangeAccent,
                 dataSource: chartData,
-                xValueMapper: (SessionData1 sessionData1, _) => sessionData1.day,
+                xValueMapper: (SessionData1 sessionData1, _) => sessionData1.sessionIndex,
                 yValueMapper: (SessionData1 sessionData1, _) => sessionData1.rating,
                 enableTooltip: true,
                 pointColorMapper: (SessionData1 sessionData1, _) => sessionData1.color,
+                 markerSettings: MarkerSettings(
+                              
+                                    isVisible: true
+
+                                )
+                                ,
+                 dataLabelSettings: DataLabelSettings(
+                                color: Colors.orangeAccent,
+                                    // Renders the data label
+                                    isVisible: true
+                                )
               ),
             ],
-             primaryXAxis: DateTimeAxis(
+             primaryXAxis: NumericAxis(
+              title: AxisTitle(
+                text: 'Sessions'
+              ),
+              desiredIntervals: chartData.length - 1,
              // intervalType: DateTimeIntervalType.days,
               //interval: 0.5,
               //dateFormat: DateFormat.MMMM(),
-              rangePadding: ChartRangePadding.auto
+               borderWidth: 1.0,
+               borderColor: Colors.orangeAccent,
+              rangePadding: ChartRangePadding.none
             // zoomFactor: .5
             ),
             primaryYAxis: NumericAxis(
-              
+               title: AxisTitle(
+                text: 'Rating'
+              ),
              // labelFormat: '{value}%',
+              borderWidth: 1.0,
+               borderColor: Colors.orangeAccent,
               decimalPlaces: 2,
-              maximum: 170
+              maximum: 1.7
                ),
 
           ),
@@ -498,10 +534,94 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
 }
 
 class SessionData1 {
-  DateTime day;
-  int rating;
+  double sessionIndex;
+  double rating;
   Color color;
-  SessionData1(this.day, this.rating, this.color);
+  SessionData1(this.sessionIndex, this.rating, this.color);
+}
+
+
+class SwishBankGraph extends StatefulWidget {
+   late User user;
+  late List<Session> sessions;
+  SwishBankGraph(this.user, this.sessions);
+
+  @override
+  State<SwishBankGraph> createState() => _SwishBankGraph();
+}
+
+class _SwishBankGraph extends State<SwishBankGraph> {
+  late List<Session> ratingSession;
+  late List<SessionData2> chartData;
+  late TooltipBehavior _tooltipBehavior;
+
+  @override
+  void initState() {
+    // Get data
+    chartData = getChartData(widget.sessions);
+    _tooltipBehavior =TooltipBehavior(enable: true);
+
+       widget.user.sessions = widget.sessions;
+    widget.user.calculateStats();
+    // Get data
+  
+    super.initState();
+   
+  }
+
+  List<SessionData2> getChartData(List<Session> sessions) {
+    List<SessionData2> chartData = [];
+    chartData.add(SessionData2("Swishes", widget.user.swishShots, Colors.orangeAccent));
+    chartData.add(SessionData2("Banks", widget.user.bankShots, Colors.orangeAccent));
+    return chartData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return SafeArea(
+      child: Column(
+        children: [
+          const Text(
+            'Swishes & Banks',
+            style: TextStyle(
+              fontSize: 30,
+            ),
+          ),
+
+                  SfCartesianChart(
+            isTransposed: true,
+            
+            series: <BarSeries<SessionData2, String>>[
+  BarSeries<SessionData2, String>(
+                 color: Colors.orangeAccent,
+                dataSource: chartData,
+                xValueMapper: (SessionData2 sessionData2, _) => sessionData2.shot,
+                yValueMapper: (SessionData2 sessionData2, _) => sessionData2.bank,
+                enableTooltip: true,
+                pointColorMapper: (SessionData2 sessionData2, _) => sessionData2.color,                           
+              ),
+
+              
+            ],
+            primaryYAxis: NumericAxis(
+              desiredIntervals: 2,
+            
+            ),
+          primaryXAxis: CategoryAxis(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SessionData2 {
+  String shot = "";
+  //int swish;
+  int bank;
+  Color color;
+  SessionData2(this.shot, this.bank, this.color);
 }
 
 // Graph (Circular) for quick overview
