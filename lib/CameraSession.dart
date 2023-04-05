@@ -198,4 +198,5 @@ class _CameraSessionState extends State<CameraSession> {
     );
   }
 
+  //Widget buildCamera() => CameraPreview(controller, key : camKey);
 }
