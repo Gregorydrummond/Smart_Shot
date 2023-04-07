@@ -33,7 +33,8 @@ Future<void> main() async {
     directory: dir.path,
   );
 
-  runApp(const MyApp());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((value) => runApp(const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -198,13 +199,42 @@ class _MainPageState extends State<MainPage> {
           ),
         ],
         onTap: (index) {
-          setState(() {
-            if (currentIndex != 1 || !sessionLive) {
+          if (currentIndex != 1 || !sessionLive) {
+            setState(() {
               currentIndex = index;
               initSessions();
-            }
-          });
-        },
+            });
+          }
+          else {
+            showDialog(
+              context: context, 
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Leave Session'),
+                  content: Text('Are you sure you want to leave the session? To save the session please press the end session button at the bottom of the page.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          currentIndex = index;
+                          initSessions();
+                          Navigator.of(context).pop();
+                        });
+                      }, 
+                      child: Text('Exit Without Saving')
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      }, 
+                      child: Text('Return To Session')
+                    )
+                  ],
+                );
+              }
+            );
+          }
+        }
       ),
     );
   }
