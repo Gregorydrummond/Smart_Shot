@@ -207,6 +207,7 @@ class _CalendarState extends State<Calendar> {
           ),
           calendarFormat: _calendarFormat,
           calendarStyle: const CalendarStyle(
+            canMarkersOverflow: false,
             markerDecoration: BoxDecoration(
               color: Colors.orangeAccent,
               shape: BoxShape.circle,
