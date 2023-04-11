@@ -23,7 +23,8 @@ class SessionList extends StatefulWidget {
   State<SessionList> createState() => _SessionListState();
 }
 
-class _SessionListState extends State<SessionList> with SingleTickerProviderStateMixin {
+class _SessionListState extends State<SessionList>
+    with SingleTickerProviderStateMixin {
   int count = 0;
   final int TAB_COUNT = 2;
   List<Session> sessions = [];
@@ -42,12 +43,23 @@ class _SessionListState extends State<SessionList> with SingleTickerProviderStat
           length: TAB_COUNT,
           child: Scaffold(
               appBar: AppBar(
-                title: const Text('Sessions', style: TextStyle(color: Colors.black),),
+                title: const Text(
+                  'Sessions',
+                  style: TextStyle(color: Colors.black),
+                ),
                 backgroundColor: Colors.orangeAccent,
                 bottom: const TabBar(
                   tabs: [
-                    Tab(icon: Icon(Icons.list, color: Colors.black,)),
-                    Tab(icon: Icon(Icons.calendar_month, color: Colors.black,)),
+                    Tab(
+                        icon: Icon(
+                      Icons.list,
+                      color: Colors.black,
+                    )),
+                    Tab(
+                        icon: Icon(
+                      Icons.calendar_month,
+                      color: Colors.black,
+                    )),
                   ],
                 ),
               ),
@@ -72,59 +84,105 @@ class Calendar extends StatefulWidget {
 class _CalendarState extends State<Calendar> {
   late List<Session> sessions;
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  late DateTime focusedDay; // = DateTime.now();
+  late DateTime focusedDay;
   late DateTime currentDay;
+  late DateTime selectedDay;
 
   Map<String, List<Session>> eventsMap = {};
-  late List<Session>? eventsList;
-  late List<Session> selectedEvents;
+  Map<DateTime, List<Session>> _sessionEventsMap = {};
+  late List<Session> eventsList;
+  late List<Session> eventList2;
+  List<Session> selectedEvents = [];
   late AnimationController _animationController;
   List<Session> newList = [];
+
+  final service = IsarService();
+  //late Future<List<Session>> sessionList;
+  List<Session> sessionList = [];
+  ListView listView = ListView();
 
   @override
   void initState() {
     super.initState();
 
-    sessions = widget.sessions;
-    //print("Session: $sessions");
     focusedDay = DateTime.now();
+    selectedDay = DateTime.now();
     currentDay = DateTime.now();
-
-    // Map sessions for calendar
-    mapSessions();
 
     // Events for today
     selectedEvents = eventsMap[focusedDay] ?? [];
+
+    // Get sessions for the month
+    _fetchSessions();
+  }
+
+  // Get data for the focused month
+  Future _fetchSessions() async {
+    List<Session> monthlySessions = [];
+    monthlySessions = await service.getSessionsWithinDates(
+        DateTime.utc(focusedDay.year, focusedDay.month, 1),
+        DateTime(focusedDay.year, (focusedDay.month + 1 % 13)));
+
+    setState(() {
+      sessionList = monthlySessions;
+    });
+
+    // Map sessions with date as key
+    mapSessions(sessionList);
   }
 
   // Map sessions for calendar
-  void mapSessions() {
+  void mapSessions(List<Session> sessions) async {
     print("Session: $sessions");
+    _sessionEventsMap = {};
+    // Put day as key
     for (var session in sessions) {
-      String date = "${session.startTime.month}/${session.startTime.day}";
-      eventsList = eventsMap[date];
-      if (eventsList == null) {
-        newList.add(session);
-        eventsMap[date] = newList;
-        newList = [];
+      DateTime date = DateTime.utc(session.startTime.year,
+          session.startTime.month, session.startTime.day, 0);
+      eventsList = _sessionEventsMap[date] ?? [];
+      if (eventsList.isEmpty) {
+        eventsList.add(session);
+        _sessionEventsMap[date] = eventsList;
       } else {
-        eventsList!.add(session);
+        _sessionEventsMap[date]!.add(session);
       }
     }
-    // Don't understand why the map function isn't working
-    // sessions.map((session) => {
-    //       print("Mapping sessions..."),
-    //       selectedEvents = events[session.startTime],
-    //       if (selectedEvents == null)
-    //         {newList.add(session), events[session.startTime] = newList}
-    //       else
-    //         {selectedEvents!.add(session)},
-    //     });
-    print("Events: $eventsMap");
+
+    print("Events: $_sessionEventsMap");
+
+    // Select events to be shown as a table
+    // Get selected date
+    DateTime selectedDayDate =
+        DateTime.utc(selectedDay.year, selectedDay.month, selectedDay.day, 0);
+    eventsList = _sessionEventsMap[selectedDay] ?? [];
+
+    if (eventsList.isEmpty) {
+      // If page changed (focused day month will be different than selected day month) => eventList == null. Change selected day to last day in eventsMap if it's not empty
+      if (focusedDay.month != selectedDay.month) {
+        if (_sessionEventsMap.isNotEmpty) {
+          // Session exists for that month
+          selectedDay = _sessionEventsMap
+              .entries.last.value.first.startTime; // DateTime of last session
+          selectedDayDate = DateTime.utc(
+              selectedDay.year,
+              selectedDay.month,
+              selectedDay.day,
+              0); // DateTime of last session reformatted to use as a key
+          eventsList = _sessionEventsMap[selectedDayDate]!;
+          onDaySelected(eventsList);
+        } else {
+          onDaySelected([]);
+        }
+      } else {
+        onDaySelected([]);
+      }
+    } else {
+      onDaySelected(eventsList);
+    }
   }
 
-  // Change selected events list
-  void onDaySelected(DateTime day, List<Session> events) {
+// Change selected events list
+  void onDaySelected(List<Session> events) {
     setState(() {
       selectedEvents = events;
     });
@@ -139,8 +197,17 @@ class _CalendarState extends State<Calendar> {
           focusedDay: focusedDay,
           firstDay: DateTime.utc(2023),
           lastDay: DateTime.utc(2023, 12, 31),
+          eventLoader: (date) {
+            return _sessionEventsMap[date] ?? [];
+          },
+          calendarBuilders: CalendarBuilders(
+            markerBuilder: (context, date, events) {
+              return null;
+            },
+          ),
           calendarFormat: _calendarFormat,
           calendarStyle: const CalendarStyle(
+            canMarkersOverflow: false,
             markerDecoration: BoxDecoration(
               color: Colors.orangeAccent,
               shape: BoxShape.circle,
@@ -151,15 +218,16 @@ class _CalendarState extends State<Calendar> {
           },
           onDaySelected: (selectedDay, focusedDay) {
             if (!isSameDay(currentDay, selectedDay)) {
-              String date = "${selectedDay.month}/${selectedDay.day}";
-              print(date);
               setState(() {
                 currentDay = selectedDay;
                 this.focusedDay = focusedDay;
-
-                selectedEvents = eventsMap[date] ?? [];
+                this.selectedDay = selectedDay;
               });
-              print(selectedEvents);
+
+              DateTime selectedDayDate = DateTime.utc(
+                  selectedDay.year, selectedDay.month, selectedDay.day, 0);
+              eventsList = _sessionEventsMap[selectedDayDate] ?? [];
+              onDaySelected(eventsList);
             }
           },
           onFormatChanged: (format) {
@@ -170,72 +238,51 @@ class _CalendarState extends State<Calendar> {
             }
           },
           onPageChanged: (focusedDay) {
-            this.focusedDay = focusedDay;
+            setState(() {
+              this.focusedDay = focusedDay;
+            });
+
+            _fetchSessions();
           },
         ),
         Expanded(
-          child: buildEventList(selectedEvents),
-        ),
+            child: ListView.builder(
+                itemCount: selectedEvents.length,
+                itemBuilder: (context, index) {
+                  return SessionCard(session: selectedEvents[index]);
+                })),
       ],
     );
   }
 }
 
-// Event List
-Widget buildEventList(List<Session> selectedEvents) {
-  return ListView(
-    children: selectedEvents
-        .map((event) => Container(
-              decoration: BoxDecoration(
-                color: Colors.orangeAccent,
-                border: Border.all(width: 0.5),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              margin: const EdgeInsets.symmetric(
-                horizontal: 2.0,
-                vertical: 1.0,
-              ),
-              child: ListTile(
-                title: Text(event.id.toString()),
-                onTap: () => {
-                  print(event.id.toString()),
+Widget sessionListView(int count, IsarService service) =>
+    FutureBuilder<List<Session>>(
+        future: service.getAllSessions(),
+        builder: (context, AsyncSnapshot<List<Session>> snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data!.isEmpty) {
+              return Center(
+                  child: Container(
+                      margin: EdgeInsets.only(top: 12.0),
+                      child: const Text('There are no sessions',
+                          style: TextStyle(
+                            fontSize: 25.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ))));
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return SessionCard(session: snapshot.data![index]);
                 },
-              ),
-            ))
-        .toList(),
-  );
-}
-
-Widget sessionListView(int count, IsarService service) => 
-  FutureBuilder<List<Session>>(
-    future: service.getAllSessions(),
-    builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-      if (snapshot.hasData) {
-        if (snapshot.data!.isEmpty) {
-          return Center(
-              child: Container(
-                  margin: EdgeInsets.only(top: 12.0),
-                  child: const Text('There are no sessions',
-                      style: TextStyle(
-                        fontSize: 25.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ))));
-        }
-        else {
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              return SessionCard(session: snapshot.data![index]);
-            },
-          );
-        }
-      }
-      else {
-        return CircularProgressIndicator();
-      }
-    }
-  );
+              );
+            }
+          } else {
+            return CircularProgressIndicator();
+          }
+        });
 
 Widget sessionCalendarView() => const Icon(Icons.calendar_month);
 
@@ -254,39 +301,42 @@ class SessionCard extends StatelessWidget {
           elevation: 5,
           color: Colors.orangeAccent,
           margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(8))),
           child: ListTile(
-                    leading: Text(
-                      "${(session.getShotPercentage*100).toStringAsFixed(1)}%", 
-                      style: const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
-                    ),
-                    title: Text(
-                      '${session.startTime.month}/${session.startTime.day}/${session.startTime.year}',
-                      style: TextStyle(fontSize: 20.0),
-                    ),
-                    subtitle: Text(
-                      'Total Shots: ${session.getTotalShots}',
-                      style: TextStyle(fontSize: 18.0),
-                    ),
-                    trailing: Container(
-                      width: 70,
-                      height: 70,
-                      child: SfCircularChart(
-                        series: <CircularSeries>[
-                          PieSeries<ChartData, String>(
-                            dataSource: [
-                              ChartData("Shots Made", session.getTotalMakes.toDouble(), Colors.green),
-                              ChartData("Shots Missed", session.getTotalMisses.toDouble(), Colors.red)
-                            ],
-                            pointColorMapper: (ChartData data, _) => data.color,
-                            xValueMapper: (ChartData data, _) => data.x,
-                            yValueMapper: (ChartData data, _) => data.y,
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-          ),
+            leading: Text(
+              "${(session.getShotPercentage * 100).toStringAsFixed(1)}%",
+              style:
+                  const TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+            ),
+            title: Text(
+              '${session.startTime.month}/${session.startTime.day}/${session.startTime.year}',
+              style: TextStyle(fontSize: 20.0),
+            ),
+            subtitle: Text(
+              'Total Shots: ${session.getTotalShots}',
+              style: TextStyle(fontSize: 18.0),
+            ),
+            trailing: Container(
+              width: 70,
+              height: 70,
+              child: SfCircularChart(
+                series: <CircularSeries>[
+                  PieSeries<ChartData, String>(
+                    dataSource: [
+                      ChartData("Shots Made", session.getTotalMakes.toDouble(),
+                          Colors.green),
+                      ChartData("Shots Missed",
+                          session.getTotalMisses.toDouble(), Colors.red)
+                    ],
+                    pointColorMapper: (ChartData data, _) => data.color,
+                    xValueMapper: (ChartData data, _) => data.x,
+                    yValueMapper: (ChartData data, _) => data.y,
+                  ),
+                ],
+              ),
+            ),
+          )),
     );
   }
 }

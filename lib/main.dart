@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -114,8 +115,7 @@ class _MainPageState extends State<MainPage> {
       String? name = prefs.getString('name');
       if (name != null) {
         user = User(name);
-      }
-      else {
+      } else {
         user = User("");
       }
     });
@@ -140,9 +140,14 @@ class _MainPageState extends State<MainPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Please Provide a Name", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold), textAlign: TextAlign.center,),
+                Text(
+                  "Please Provide a Name",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 20.0),
                   child: TextField(
                     controller: controller,
                     style: TextStyle(fontSize: 20),
@@ -154,29 +159,34 @@ class _MainPageState extends State<MainPage> {
                   ),
                 ),
                 TextButton(
-                  style: ButtonStyle(
-                    elevation: MaterialStatePropertyAll<double>(3.0),
-                    backgroundColor: MaterialStatePropertyAll<Color>(Colors.orangeAccent)
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      if (controller.value.text.trim() != '') {
-                        createUser(controller.value.text);
-                      }
-                    });
-                  },
-                  child: Text('Submit', style: TextStyle(color: Colors.black, fontSize: 20),)
-                )
+                    style: ButtonStyle(
+                        elevation: MaterialStatePropertyAll<double>(3.0),
+                        backgroundColor: MaterialStatePropertyAll<Color>(
+                            Colors.orangeAccent)),
+                    onPressed: () {
+                      setState(() {
+                        if (controller.value.text.trim() != '') {
+                          createUser(controller.value.text);
+                        }
+                      });
+                    },
+                    child: Text(
+                      'Submit',
+                      style: TextStyle(color: Colors.black, fontSize: 20),
+                    ))
               ],
             ),
           ),
         ),
       );
-    }
-    else if (user.name == null) {
+    } else if (user.name == null) {
       return Scaffold(
         body: Center(
-          child: Icon(Icons.sports_basketball, size: 100, color: Colors.orangeAccent,),
+          child: Icon(
+            Icons.sports_basketball,
+            size: 100,
+            color: Colors.orangeAccent,
+          ),
         ),
       );
     }
