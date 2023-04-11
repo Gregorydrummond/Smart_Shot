@@ -54,6 +54,7 @@ class _HomeState extends State<Home> {
                     UserCard(widget.user, snapshot.data!),
                     WeeklyRecapGraph(snapshot.data!),
                     RatingRecapGraph(widget.user, snapshot.data!),
+                    SwishBankGraph(widget.user, snapshot.data!),
                     OverviewRecapGraph(widget.user, snapshot.data!),
                     LastSession(snapshot.data!),
                   ],
@@ -388,6 +389,90 @@ class SessionData1 {
   int rating;
   Color color;
   SessionData1(this.day, this.rating, this.color);
+}
+
+///////////////// Graph (Swish Bank bar) for quick overview /////////////////////
+class SwishBankGraph extends StatefulWidget {
+   late User user;
+  late List<Session> sessions;
+  SwishBankGraph(this.user, this.sessions);
+
+  @override
+  State<SwishBankGraph> createState() => _SwishBankGraph();
+}
+
+class _SwishBankGraph extends State<SwishBankGraph> {
+  late List<Session> ratingSession;
+  late List<SessionData2> chartData;
+  late TooltipBehavior _tooltipBehavior;
+
+  @override
+  void initState() {
+    // Get data
+    chartData = getChartData(widget.sessions);
+    _tooltipBehavior =TooltipBehavior(enable: true);
+
+       widget.user.sessions = widget.sessions;
+    widget.user.calculateStats();
+    // Get data
+  
+    super.initState();
+   
+  }
+
+  List<SessionData2> getChartData(List<Session> sessions) {
+    List<SessionData2> chartData = [];
+    chartData.add(SessionData2("Swishes", widget.user.swishShots, Colors.orangeAccent));
+    chartData.add(SessionData2("Banks", widget.user.bankShots, Colors.orangeAccent));
+    return chartData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return SafeArea(
+      child: Column(
+        children: [
+          const Text(
+            'Swishes & Banks',
+            style: TextStyle(
+              fontSize: 30,
+            ),
+          ),
+
+                  SfCartesianChart(
+            isTransposed: true,
+            
+            series: <BarSeries<SessionData2, String>>[
+  BarSeries<SessionData2, String>(
+                 color: Colors.orangeAccent,
+                dataSource: chartData,
+                xValueMapper: (SessionData2 sessionData2, _) => sessionData2.shot,
+                yValueMapper: (SessionData2 sessionData2, _) => sessionData2.bank,
+                enableTooltip: true,
+                pointColorMapper: (SessionData2 sessionData2, _) => sessionData2.color,                           
+              ),
+
+              
+            ],
+            primaryYAxis: NumericAxis(
+              desiredIntervals: 2,
+            
+            ),
+          primaryXAxis: CategoryAxis(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SessionData2 {
+  String shot = "";
+  //int swish;
+  int bank;
+  Color color;
+  SessionData2(this.shot, this.bank, this.color);
 }
 
 ///////////////// Graph (Circular) for quick overview /////////////////////
