@@ -95,7 +95,7 @@ class MainActivity: FlutterActivity() {
                   val ratio = (bbox.width * bbox.height) / (dif.width() * dif.height() / 2.0)
 
                   // too big, too small, not square enough
-                  if (ratio < 0.005 || ratio > 0.013 || bbox.width / (bbox.height + 0.0) < 0.85 || bbox.width / (bbox.height + 0.0) > 1.15) {
+                  if (ratio < 0.001 || ratio > 0.023 || bbox.width / (bbox.height + 0.0) < 0.85 || bbox.width / (bbox.height + 0.0) > 1.15) {
                     continue;
                   }
 
