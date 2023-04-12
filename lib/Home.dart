@@ -298,7 +298,7 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
     chartData = getChartData(widget.sessions);
     _tooltipBehavior =TooltipBehavior(enable: true);
 
-       widget.user.sessions = widget.sessions;
+    widget.user.sessions = widget.sessions;
     widget.user.calculateStats();
     // Get data
     userRating = widget.user.getRating;
@@ -325,12 +325,12 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
       if (count != 0){
         rating =  double.parse(
         ((((bank + session.bankShots) + (swish + session.swishShots) * 1.5)) / (total + session.totalShots).toDouble())
-            .toStringAsFixed(2)) * 100;
+            .toStringAsFixed(2)) ;
       }
-      else {rating = session.getSessionRating *100;}
+      else {rating = session.getSessionRating ;}
 
       count++;
-      chartData.add(SessionData1(date, (rating).round(), Colors.blue));
+      chartData.add(SessionData1(count.toDouble(), (rating), Colors.orangeAccent));
       bank += session.bankShots;
       swish += session.swishShots;
       total += session.totalShots;
@@ -355,26 +355,44 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
             isTransposed: false,
             
             series: <ChartSeries>[
-              LineSeries<SessionData1, DateTime>(
+              LineSeries<SessionData1, double>(
+                 color: Colors.orangeAccent,
                 dataSource: chartData,
-                xValueMapper: (SessionData1 sessionData1, _) => sessionData1.day,
+                xValueMapper: (SessionData1 sessionData1, _) => sessionData1.sessionIndex,
                 yValueMapper: (SessionData1 sessionData1, _) => sessionData1.rating,
                 enableTooltip: true,
                 pointColorMapper: (SessionData1 sessionData1, _) => sessionData1.color,
+                 markerSettings: MarkerSettings(
+                              
+                                    isVisible: true
+
+                                )
+                                ,
+                 dataLabelSettings: DataLabelSettings(
+                                color: Colors.orangeAccent,
+                                    // Renders the data label
+                                    isVisible: true
+                                )
               ),
             ],
-             primaryXAxis: DateTimeAxis(
-             // intervalType: DateTimeIntervalType.days,
-              //interval: 0.5,
-              //dateFormat: DateFormat.MMMM(),
-              rangePadding: ChartRangePadding.auto
+             primaryXAxis: NumericAxis(
+              title: AxisTitle(
+                text: 'Sessions'
+              ),
+
+             // desiredIntervals: chartData.length - 1,
+            
+              rangePadding: ChartRangePadding.none
             // zoomFactor: .5
             ),
             primaryYAxis: NumericAxis(
-              
+               title: AxisTitle(
+                text: 'Rating'
+              ),
              // labelFormat: '{value}%',
+              
               decimalPlaces: 2,
-              maximum: 170
+              maximum: 1.7
                ),
 
           ),
@@ -385,13 +403,14 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
 }
 
 class SessionData1 {
-  DateTime day;
-  int rating;
+  double sessionIndex;
+  double rating;
   Color color;
-  SessionData1(this.day, this.rating, this.color);
+  SessionData1(this.sessionIndex, this.rating, this.color);
 }
 
-///////////////// Graph (Swish Bank bar) for quick overview /////////////////////
+
+///////////////// Graph (Swish Bank) for quick overview /////////////////////
 class SwishBankGraph extends StatefulWidget {
    late User user;
   late List<Session> sessions;
