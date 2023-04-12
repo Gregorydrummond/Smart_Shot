@@ -470,18 +470,27 @@ class _SwishBankGraph extends State<SwishBankGraph> {
                 yValueMapper: (SessionData2 sessionData2, _) => sessionData2.bank,
                 enableTooltip: true,
                 pointColorMapper: (SessionData2 sessionData2, _) => sessionData2.color,   
-                borderRadius: BorderRadius.all(Radius.circular(15)),      
-               width: .4,
-                isTrackVisible: true,                  
+                borderRadius: BorderRadius.all(Radius.circular(15)),                   
+                width: .4,
+                isTrackVisible: true,   
+                 dataLabelSettings: DataLabelSettings(
+                                color: Colors.orangeAccent,
+                                    // Renders the data label
+                                    isVisible: true
+                                )               
               ),
 
               
             ],
             primaryYAxis: NumericAxis(
               desiredIntervals: 2,
-            
+              // majorGridLines: MajorGridLines(width: 0),  
+             //  axisLine: AxisLine(width: 0), 
+              isVisible: false, 
             ),
-          primaryXAxis: CategoryAxis(),
+          primaryXAxis: CategoryAxis(
+         
+          ),
           ),
         ],
       ),
