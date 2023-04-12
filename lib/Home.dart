@@ -223,6 +223,7 @@ class _WeeklyRecapGraphState extends State<WeeklyRecapGraph> {
             
             series: <ChartSeries>[
               ScatterSeries<SessionData, DateTime>(
+                name: 'Performance',
                 dataSource: chartData,
                 // trendlines:<Trendline>[
                 //   Trendline(
@@ -296,7 +297,10 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
   void initState() {
     // Get data
     chartData = getChartData(widget.sessions);
-    _tooltipBehavior =TooltipBehavior(enable: true);
+    _tooltipBehavior =TooltipBehavior(
+    enable: true,
+   
+    );
 
     widget.user.sessions = widget.sessions;
     widget.user.calculateStats();
@@ -356,6 +360,7 @@ class _RatingRecapGraphState extends State<RatingRecapGraph> {
             
             series: <ChartSeries>[
               LineSeries<SessionData1, double>(
+                name: 'Rating',
                  color: Colors.orangeAccent,
                 dataSource: chartData,
                 xValueMapper: (SessionData1 sessionData1, _) => sessionData1.sessionIndex,
@@ -429,7 +434,10 @@ class _SwishBankGraph extends State<SwishBankGraph> {
   void initState() {
     // Get data
     chartData = getChartData(widget.sessions);
-    _tooltipBehavior =TooltipBehavior(enable: true);
+    _tooltipBehavior =TooltipBehavior(
+      enable: true,
+    //  tooltipPosition: TooltipPosition.pointer
+      );
 
        widget.user.sessions = widget.sessions;
     widget.user.calculateStats();
@@ -484,7 +492,7 @@ class _SwishBankGraph extends State<SwishBankGraph> {
               
             ],
             primaryYAxis: NumericAxis(
-              desiredIntervals: 2,
+             // desiredIntervals: 2,
               // majorGridLines: MajorGridLines(width: 0),  
              //  axisLine: AxisLine(width: 0), 
               isVisible: false, 
