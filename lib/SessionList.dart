@@ -87,6 +87,7 @@ class _CalendarState extends State<Calendar> {
   late DateTime focusedDay;
   late DateTime currentDay;
   late DateTime selectedDay;
+ 
 
   Map<String, List<Session>> eventsMap = {};
   Map<DateTime, List<Session>> _sessionEventsMap = {};
@@ -244,7 +245,8 @@ class _CalendarState extends State<Calendar> {
 
             _fetchSessions();
           },
-        ),
+        ),            
+           
         Expanded(
             child: ListView.builder(
                 itemCount: selectedEvents.length,
