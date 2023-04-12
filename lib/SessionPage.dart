@@ -55,67 +55,91 @@ class _SessionPageState extends State<SessionPage> {
 
 // Widget for live data
   Widget liveFeedScreen() {
-    List<Widget> widgets = [CameraSession(cameras: widget.cameras, ballDetected: ballDetected, startSession: startNewSession)];
+    List<Widget> widgets = [
+      CameraSession(
+          cameras: widget.cameras,
+          ballDetected: ballDetected,
+          startSession: startNewSession)
+    ];
     if (sessionStarted) {
       widgets.addAll([
         Row(
-            children: [
-              Expanded(
-                child: StatCard(value: session.getTotalMakes.toDouble(), title: "Shots made", type: "count",),
+          children: [
+            Expanded(
+              child: StatCard(
+                value: session.getTotalMakes.toDouble(),
+                title: "Shots made",
+                type: "count",
               ),
-              Expanded(
-                child: StatCard(value: session.getTotalShots.toDouble(), title: "Total Shots", type: "count"),
+            ),
+            Expanded(
+              child: StatCard(
+                  value: session.getTotalShots.toDouble(),
+                  title: "Total Shots",
+                  type: "count"),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                  value: session.getTotalMisses.toDouble(),
+                  title: "Shots missed",
+                  type: "count"),
+            ),
+            Expanded(
+              child: StatCard(
+                  value: session.getShotPercentage,
+                  title: "Shot %",
+                  type: "percent"),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                value: session.getAirballShots.toDouble(),
+                title: "Airballs",
+                type: "count",
               ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: StatCard(value: session.getTotalMisses.toDouble(), title: "Shots missed", type: "count"),
+            ),
+            Expanded(
+              child: StatCard(
+                value: session.getStreak.toDouble(),
+                title: "Current Streak",
+                type: "count",
               ),
-              Expanded(
-                child: StatCard(value: session.getShotPercentage, title: "Shot %", type: "percent"),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: StatCard(value: session.getAirballShots.toDouble(), title: "Airballs", type: "count",),
-              ),
-              Expanded(
-                child: StatCard(value: 0.0, title: "Current Streak", type: "count",),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: OutlinedButton(
-              onPressed: () {
-                setState(() {
-                  sessionStarted = false;
-                  // widget.end();
-                  // unsubscribeFromCharacteristic();
-                  endSession();
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(50),
-              ),
-              child: const Text(
-                'End Session',
-                style: TextStyle(
-                  fontSize: 45,
-                ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: OutlinedButton(
+            onPressed: () {
+              setState(() {
+                sessionStarted = false;
+                // widget.end();
+                // unsubscribeFromCharacteristic();
+                endSession();
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              'End Session',
+              style: TextStyle(
+                fontSize: 45,
               ),
             ),
           ),
+        ),
       ]);
     }
     return SingleChildScrollView(
-      child: Column(
-        children: widgets
-      ),
+      child: Column(children: widgets),
     );
   }
 
@@ -136,18 +160,18 @@ class _SessionPageState extends State<SessionPage> {
           case 0:
             print("Shot misses");
             session.shotTaken(ShotType.miss);
-          
+
             break;
           case 1:
             print("Swish made");
             session.shotTaken(ShotType.swish);
-            
+
             break;
 
           case 2:
             print("Bank made");
             session.shotTaken(ShotType.bank);
-           
+
             break;
           default:
         }
@@ -211,7 +235,9 @@ class _SessionPageState extends State<SessionPage> {
         title: const Text('Live Session'),
         backgroundColor: Colors.orangeAccent,
       ),
-      body: ConnectDevice.connected ? liveFeedScreen() : ConnectDevice(onConnection: connectToast),
+      body: ConnectDevice.connected
+          ? liveFeedScreen()
+          : ConnectDevice(onConnection: connectToast),
     );
   }
 }
