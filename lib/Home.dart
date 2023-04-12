@@ -469,7 +469,10 @@ class _SwishBankGraph extends State<SwishBankGraph> {
                 xValueMapper: (SessionData2 sessionData2, _) => sessionData2.shot,
                 yValueMapper: (SessionData2 sessionData2, _) => sessionData2.bank,
                 enableTooltip: true,
-                pointColorMapper: (SessionData2 sessionData2, _) => sessionData2.color,                           
+                pointColorMapper: (SessionData2 sessionData2, _) => sessionData2.color,   
+                borderRadius: BorderRadius.all(Radius.circular(15)),      
+               width: .4,
+                isTrackVisible: true,                  
               ),
 
               
@@ -647,7 +650,7 @@ class _LastSessionState extends State<LastSession> {
           ),
           Row(
             children: [
-              Expanded(child: StatCard(title: "Total Shots", type: "count", value: widget.sessions.last.getSwishShots.toDouble())),
+              Expanded(child: StatCard(title: "Total Shots", type: "count", value: widget.sessions.last.getTotalShots.toDouble())),
               Expanded(child: StatCard(title: "Total Misses", type: "count", value: widget.sessions.last.getTotalMisses.toDouble())),
             ],
           ),
