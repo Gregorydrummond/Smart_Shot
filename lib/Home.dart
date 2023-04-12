@@ -476,7 +476,8 @@ class _SwishBankGraph extends State<SwishBankGraph> {
                  dataLabelSettings: DataLabelSettings(
                                 color: Colors.orangeAccent,
                                     // Renders the data label
-                                    isVisible: true
+                                    isVisible: true,
+                                    labelAlignment: ChartDataLabelAlignment.bottom
                                 )               
               ),
 
