@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_shot/ConnectDevice.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -16,6 +19,7 @@ import 'SessionPage.dart';
 import 'CameraSession.dart';
 import 'User.dart';
 import 'ConnectDevice.dart';
+import 'SessionList.dart';
 import 'dart:math';
 
 late List<CameraDescription> _cameras;
@@ -26,11 +30,12 @@ Future<void> main() async {
   _cameras = await availableCameras();
   final dir = await getApplicationSupportDirectory();
   final isar = await Isar.open(
-  [SessionSchema],
-  directory: dir.path,
+    [SessionSchema],
+    directory: dir.path,
   );
 
-  runApp(const MyApp());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((value) => runApp(const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -61,116 +66,130 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  //add isar service
   final service = IsarService();
-  //final Session sessions = service.getAllSessions();
-  static final User user = User('Lebron');
-  // Indices and corresponding widget/screen for the bottom nav bar
+  static User user = User(null);
+  bool sessionLive = false;
   int currentIndex = 0;
-  int count =0;
+  int count = 0;
+  List<Session> sessions = [];
+
   Widget selectPage() {
-    
     List<Widget> screens = [
-      Home(
-        user: user,
+      Home(user: user),
+      SessionPage(cameras: _cameras, end: endSession, start: startSession),
+      SessionList(
+        service: service,
+        sessions: sessions,
+        count: count,
       ),
-      
-      //start session page
-      SessionPage(user: user, cameras: _cameras, end: endSession),
-
-      //session list page
-      SingleChildScrollView(
-         child: Column(
-          children: [
-            TextButton(onPressed: (){
-              Session session = Session();
-              session.shotTaken(ShotType.swish);
-              session.shotTaken(ShotType.miss);
-              session.shotTaken(ShotType.swish);
-              session.shotTaken(ShotType.miss);
-              session.shotTaken(ShotType.bank);
-              session.shotTaken(ShotType.bank);
-              session.endSession(user);
-              service.saveSession(session);
-             
-              }, child: Text('Add Session')),
-              TextButton(onPressed: ()async{
-              List<Session> list = await  service.getAllSessions();
-              setState(() {
-                count = list.length;
-              });
-              }, child : Text('Get Sessions')),
-
-              Text(count.toString()),
-
-               TextButton(onPressed: ()async{
-              await service.cleanDb;
-              setState(() {
-               
-              });
-              }, child : Text('Clean DB')),
-
-             FutureBuilder <List<Session>>(
-              future:service.getAllSessions(),
-              builder: (context, AsyncSnapshot<List<Session>> snapshot) {
-               if (snapshot.hasData) {
-                return SingleChildScrollView(
-          child: Column(
-              children:
-                  (snapshot.data!).map((session) => SessionCard(session)).toList()),
-        );
-              } else {
-                return CircularProgressIndicator();
-              }
-            }
-               )
-
-
-              
-          ],
-        ),
-      )
     ];
 
     return screens[currentIndex];
   }
 
-  // child: Column(
-  //         children: [
-  //           TextButton(onPressed: (){
-  //             Session session = Session();
-  //             session.shotTaken(ShotType.make);
-  //             session.shotTaken(ShotType.make);
-  //             session.endSession(user);
-  //             service.saveSession(Session());
-             
-  //             }, child: Text('Add Session')),
-  //             TextButton(onPressed: ()async{
-  //             List<Session> list = await  service.getAllSessions();
-              
-  //             setState(() {
-  //               count = list.length;
-  //             });
-  //             }, child : Text('Get Sessions')),
-
-  //             Text(count.toString()) 
-  //         ],
-  //       ),
+  startSession() {
+    sessionLive = true;
+  }
 
   endSession() {
     setState(() {
+      sessionLive = false;
       currentIndex = 0;
     });
   }
 
-  // For future use
   @override
   void initState() {
     super.initState();
+    initSessions();
+    initUser();
+  }
+
+  void initSessions() async {
+    sessions = await service.getAllSessions();
+  }
+
+  void initUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      String? name = prefs.getString('name');
+      if (name != null) {
+        user = User(name);
+      } else {
+        user = User("");
+      }
+    });
+  }
+
+  void createUser(String name) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', name);
+    setState(() {
+      user = User(name);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (user.name == '') {
+      TextEditingController controller = TextEditingController();
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Please Provide a Name",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8.0, horizontal: 20.0),
+                  child: TextField(
+                    controller: controller,
+                    style: TextStyle(fontSize: 20),
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Name',
+                    ),
+                  ),
+                ),
+                TextButton(
+                    style: ButtonStyle(
+                        elevation: MaterialStatePropertyAll<double>(3.0),
+                        backgroundColor: MaterialStatePropertyAll<Color>(
+                            Colors.orangeAccent)),
+                    onPressed: () {
+                      setState(() {
+                        if (controller.value.text.trim() != '') {
+                          createUser(controller.value.text);
+                        }
+                      });
+                    },
+                    child: Text(
+                      'Submit',
+                      style: TextStyle(color: Colors.black, fontSize: 20),
+                    ))
+              ],
+            ),
+          ),
+        ),
+      );
+    } else if (user.name == null) {
+      return Scaffold(
+        body: Center(
+          child: Icon(
+            Icons.sports_basketball,
+            size: 100,
+            color: Colors.orangeAccent,
+          ),
+        ),
+      );
+    }
     return Scaffold(
       body: selectPage(),
       bottomNavigationBar: BottomNavigationBar(
@@ -190,135 +209,43 @@ class _MainPageState extends State<MainPage> {
           ),
         ],
         onTap: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-      ),
-    );
-  }
-}
-
-
-
-
-class SessionCard extends StatelessWidget {
-  final service = IsarService();
-  final Session session;
-  SessionCard(this.session);
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => SessionDetails(session)));
-           
-      } ,
-      child: Card(
-          elevation: 10,
-          color: Colors.orangeAccent,
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              color: Colors.black,
-            ),
-            borderRadius: const BorderRadius.all(Radius.circular(5)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(5),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Text('Total Shots: ${session.totalShots}',
-                        style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black)),
-                    const SizedBox(
-                      width: 12,
+          if (currentIndex != 1 || !sessionLive) {
+            setState(() {
+              currentIndex = index;
+              initSessions();
+            });
+          }
+          else {
+            showDialog(
+              context: context, 
+              builder: (context) {
+                return AlertDialog(
+                  title: Text('Leave Session'),
+                  content: Text('Are you sure you want to leave the session? To save the session please press the end session button at the bottom of the page.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          currentIndex = index;
+                          initSessions();
+                          Navigator.of(context).pop();
+                        });
+                      }, 
+                      child: Text('Exit Without Saving')
                     ),
-                    Text('Shot Percentage: ${session.shotPercentage * 100}%',
-                        style: TextStyle(
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black))
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      }, 
+                      child: Text('Return To Session')
+                    )
                   ],
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Row(
-                  children: [
-                    Text(
-                        'Stats: ${session.getShotPercentage}/${session.getTotalMakes}/${session.getTotalShots}',
-                        style: TextStyle(
-                            fontSize: 10.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black))
-                  ],
-                )
-              ],
-            ),
-          )),
-    );
-  }
-}
-
-class SessionDetails extends StatelessWidget {
-  Session session;
-  SessionDetails(this.session, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final List<ChartData> chartData = [
-      ChartData('David', 25),
-      ChartData('Steve', 38),
-      ChartData('Jack', 34),
-      ChartData('Others', 52)
-    ];
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orangeAccent,
-        title: const Text('Session Details'),
-      ),
-      body: Column(
-        children: [
-           const Text(
-            'Last Session',
-            style: TextStyle(
-              fontSize: 30,
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: dataAndLabelBox(session.getShotPercentage, "Shot %"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(15, "Time"),
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: dataAndLabelBox(17, "Swishes"),
-              ),
-              Expanded(
-                child: dataAndLabelBox(5, "Airballs"),
-              ),
-            ],
-          ),
-        ],
+                );
+              }
+            );
+          }
+        }
       ),
     );
   }
-}
-class ChartData {
-  ChartData(this.x, this.y, [this.color]);
-  final String x;
-  final double y;
-  final Color? color;
 }

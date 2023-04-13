@@ -6,6 +6,7 @@ import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smart_shot/CameraSession.dart';
+import 'package:smart_shot/StatCard.dart';
 import 'package:smart_shot/isar_service.dart';
 import 'dart:io';
 import 'dart:async';
@@ -15,15 +16,15 @@ import 'User.dart';
 import 'Home.dart';
 
 class SessionPage extends StatefulWidget {
-  late User user;
   final List<CameraDescription> cameras;
   Function end;
+  Function start;
 
   SessionPage(
       {super.key,
-      required this.user,
       required this.cameras,
-      required this.end});
+      required this.end,
+      required this.start});
 
   @override
   State<SessionPage> createState() => _SessionPageState();
@@ -37,105 +38,110 @@ class _SessionPageState extends State<SessionPage> {
 
   // Data
   int shot = 0;
+  late Timer timer;
 
   @override
   void initState() {
     super.initState();
   }
 
-  // Widget to start the session
-  Widget startSessionScreen() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    sessionStarted = true;
-                    startNewSession();
-                    _subToCharacteristic();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text(
-                  'Start SmartShot Session',
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    // session.endSession();
+    // await service.saveSession(session);
+    // await unsubscribeFromCharacteristic();
+  }
 
 // Widget for live data
-  Widget liveFeedScreen() => SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            CameraSession(cameras: widget.cameras),
-            Row(
-              children: [
-                Expanded(
-                  child:
-                      _buildDataBox("${session.getTotalMakes}", "Shots made"),
-                ),
-                Expanded(
-                  child:
-                      _buildDataBox("${session.getTotalShots}", "Total Shots"),
-                ),
-              ],
+  Widget liveFeedScreen() {
+    List<Widget> widgets = [
+      CameraSession(
+          cameras: widget.cameras,
+          ballDetected: ballDetected,
+          startSession: startNewSession)
+    ];
+    if (sessionStarted) {
+      widgets.addAll([
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                value: session.getTotalMakes.toDouble(),
+                title: "Shots made",
+                type: "count",
+              ),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDataBox(
-                      "${session.getTotalMisses}", "Shots missed"),
-                ),
-                Expanded(
-                  child: _buildDataBox(
-                      "${session.getShotPercentage * 100}%", "Shot %"),
-                ),
-              ],
+            Expanded(
+              child: StatCard(
+                  value: session.getTotalShots.toDouble(),
+                  title: "Total Shots",
+                  type: "count"),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDataBox("0m", "Time"),
-                ),
-                Expanded(
-                  child: _buildDataBox("0", "Current Streak"),
-                ),
-              ],
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                  value: session.getTotalMisses.toDouble(),
+                  title: "Shots missed",
+                  type: "count"),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    sessionStarted = false;
-                    unsubscribeFromCharacteristic();
-                    endSession();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(50),
-                ),
-                child: const Text(
-                  'End Session',
-                  style: TextStyle(
-                    fontSize: 45,
-                  ),
-                ),
+            Expanded(
+              child: StatCard(
+                  value: session.getShotPercentage,
+                  title: "Shot %",
+                  type: "percent"),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                value: session.getAirballShots.toDouble(),
+                title: "Airballs",
+                type: "count",
+              ),
+            ),
+            Expanded(
+              child: StatCard(
+                value: session.getStreak.toDouble(),
+                title: "Current Streak",
+                type: "count",
               ),
             ),
           ],
         ),
-      );
+        Padding(
+          padding: const EdgeInsets.all(10),
+          child: OutlinedButton(
+            onPressed: () {
+              setState(() {
+                sessionStarted = false;
+                // widget.end();
+                // unsubscribeFromCharacteristic();
+                endSession();
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+            ),
+            child: const Text(
+              'End Session',
+              style: TextStyle(
+                fontSize: 45,
+              ),
+            ),
+          ),
+        ),
+      ]);
+    }
+    return SingleChildScrollView(
+      child: Column(children: widgets),
+    );
+  }
 
   // Listen for the random characteristic
   void _subToCharacteristic() {
@@ -145,19 +151,27 @@ class _SessionPageState extends State<SessionPage> {
       //print(data);
       setState(() {
         shot = data.isNotEmpty ? data.first : -1;
+        if (shot != -1) {
+          try {
+            timer.cancel();
+          } catch (e) {}
+        }
         switch (shot) {
           case 0:
             print("Shot misses");
             session.shotTaken(ShotType.miss);
+
             break;
           case 1:
             print("Swish made");
             session.shotTaken(ShotType.swish);
+
             break;
 
           case 2:
             print("Bank made");
             session.shotTaken(ShotType.bank);
+
             break;
           default:
         }
@@ -167,26 +181,50 @@ class _SessionPageState extends State<SessionPage> {
     });
   }
 
+  // Listen for the airball from the camera
+  void ballDetected() {
+    timer = Timer(Duration(seconds: 5), () {
+      setState(() {
+        print("Airball!!");
+        session.shotTaken(ShotType.airball);
+      });
+    });
+  }
+
+  connectToast({required String message}) {
+    setState(() {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message),
+      ));
+    });
+  }
+
   // Unsubscribe from random characteristic
-  void unsubscribeFromCharacteristic() {
+  Future<void> unsubscribeFromCharacteristic() async {
     ConnectDevice.flutterReactiveBLEPlatform.stopSubscribingToNotifications(
         ConnectDevice.randomQualifiedCharacteristic);
   }
 
   // Create new session
   void startNewSession() {
+    _subToCharacteristic();
     session = Session();
+    widget.start();
+    setState(() {
+      sessionStarted = true;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Session Has Started'),
+      ));
+    });
   }
 
   // End session
-  void endSession() {
-    session.endSession(widget.user);
-    service.saveSession(session);
-    widget.user.sessions.add(session);
+  Future<void> endSession() async {
+    session.endSession();
+    await service.saveSession(session);
+    await unsubscribeFromCharacteristic();
     widget.end();
   }
-
-  // Override dispose function
 
   // Return the start session or the live session screen
   @override
@@ -197,46 +235,9 @@ class _SessionPageState extends State<SessionPage> {
         title: const Text('Live Session'),
         backgroundColor: Colors.orangeAccent,
       ),
-      body: sessionStarted ? liveFeedScreen() : startSessionScreen(),
+      body: ConnectDevice.connected
+          ? liveFeedScreen()
+          : ConnectDevice(onConnection: connectToast),
     );
   }
 }
-
-// Function to build those orange boxes
-Widget _buildDataBox(String shotData, String dataLabel) => Container(
-      padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.all(10),
-      height: 150,
-      decoration: BoxDecoration(
-        color: Colors.orangeAccent,
-        shape: BoxShape.rectangle,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(8),
-        ),
-        border: Border.all(
-          width: 1,
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 2,
-            child: Text(
-              shotData,
-              style: const TextStyle(
-                fontSize: 70,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              dataLabel,
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
